@@ -1,0 +1,17 @@
+{
+  "name": "smokeTracker",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "expo start",
+    "web": "next dev",
+    "build-web": "next build",
+    "export": "next export"
+  },
+  "dependencies": {
+    "expo": "^49.0.0",
+    "next": "^14.0.0",
+    "react": "^18.0.0",
+    "react-dom": "^18.0.0",
+    "firebase": "^10.0.0"
+  }
+}

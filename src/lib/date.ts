@@ -79,3 +79,27 @@ export function formatTime(date: Date, locale = "fr-FR", timeZone?: string): str
     timeZone,
   }).format(date);
 }
+
+/**
+ * Heure de la dernière cigarette, située dans le temps.
+ * `14:32` aujourd'hui, `hier 22:10` la veille, `12/10 22:10` au-delà : sans cela
+ * l'heure seule laisserait croire à une cigarette du jour.
+ */
+export function formatRelativeTime(
+  date: Date,
+  todayKey: string,
+  locale = "fr-FR",
+  timeZone?: string,
+): string {
+  const key = dayKey(date, timeZone);
+  const time = formatTime(date, locale, timeZone);
+  if (key === todayKey) return time;
+  if (key === shiftDayKey(todayKey, -1)) return `hier ${time}`;
+
+  const shortDate = new Intl.DateTimeFormat(locale, {
+    day: "2-digit",
+    month: "2-digit",
+    timeZone,
+  }).format(date);
+  return `${shortDate} ${time}`;
+}

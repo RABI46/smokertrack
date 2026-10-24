@@ -8,10 +8,10 @@ import android.content.SharedPreferences;
  *
  * Le WebView garde les données dans son `localStorage` : le widget, qui vit
  * dans un autre processus, ne peut pas le lire. On recopie donc un résumé
- * (jour courant, compteur, objectif) dans des SharedPreferences dédiées après
- * chaque modification, et le widget y écrit les ajouts effectués hors de
- * l'application via une petite file d'attente (`pending_add`) que le WebView
- * consomme à son ouverture.
+ * (jour courant, compteur, objectif, heure de la dernière cigarette) dans des
+ * SharedPreferences dédiées après chaque modification, et le widget y écrit les
+ * ajouts effectués hors de l'application via une petite file d'attente
+ * (`pending_add`) que le WebView consomme à son ouverture.
  */
 final class WidgetStorage {
 
@@ -19,6 +19,7 @@ final class WidgetStorage {
     private static final String KEY_TODAY = "today_key";
     private static final String KEY_COUNT = "today_count";
     private static final String KEY_GOAL = "goal";
+    private static final String KEY_LAST = "last_smoked_at";
     private static final String KEY_PENDING = "pending_add";
     private static final String KEY_SYNCED_AT = "synced_at";
 
@@ -29,13 +30,18 @@ final class WidgetStorage {
         return context.getApplicationContext().getSharedPreferences(PREFS, Context.MODE_PRIVATE);
     }
 
-    /** Enregistre le résumé poussé par l'application web. */
-    static void saveSnapshot(Context context, String todayKey, int count, int goal) {
+    /**
+     * Enregistre le résumé poussé par l'application web.
+     * `lastSmokedAt = 0` signifie « aucune cigarette aujourd'hui » : JSON n'a
+     * pas de `null` transportable simplement vers Java.
+     */
+    static void saveSnapshot(Context context, String todayKey, int count, int goal, long lastSmokedAt) {
         prefs(context)
                 .edit()
                 .putString(KEY_TODAY, todayKey == null ? "" : todayKey)
                 .putInt(KEY_COUNT, Math.max(0, count))
                 .putInt(KEY_GOAL, Math.max(1, goal))
+                .putLong(KEY_LAST, Math.max(0L, lastSmokedAt))
                 .putLong(KEY_SYNCED_AT, System.currentTimeMillis())
                 .apply();
     }
@@ -58,6 +64,15 @@ final class WidgetStorage {
 
     static int goal(Context context) {
         return prefs(context).getInt(KEY_GOAL, 10);
+    }
+
+    /** Horodatage (ms) de la dernière cigarette, `0` si aucune. */
+    static long lastSmokedAt(Context context) {
+        return prefs(context).getLong(KEY_LAST, 0L);
+    }
+
+    static void setLastSmokedAt(Context context, long timestamp) {
+        prefs(context).edit().putLong(KEY_LAST, Math.max(0L, timestamp)).apply();
     }
 
     static void addPending(Context context, int delta) {

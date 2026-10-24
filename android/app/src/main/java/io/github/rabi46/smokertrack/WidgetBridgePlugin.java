@@ -9,10 +9,12 @@ import com.getcapacitor.annotation.CapacitorPlugin;
 /**
  * Pont entre l'application web (WebView) et le widget natif.
  *
- * - `sync` : recopie le résumé du jour dans les SharedPreferences lues par le
- *   widget, puis rafraîchit les widgets affichés.
- * - `consumePending` : renvoie (et vide) le nombre de cigarettes ajoutées
- *   depuis le widget, que l'application fusionne dans ses données.
+ * - `sync` : recopie le résumé du jour (compteur, objectif, heure de la
+ *   dernière cigarette) dans les SharedPreferences lues par le widget, puis
+ *   rafraîchit les widgets affichés.
+ * - `consumePending` : renvoie (et vide) les cigarettes ajoutées depuis le
+ *   widget, avec l'horodatage réel de la dernière, que l'application fusionne
+ *   dans ses données.
  *
  * Aucun accès réseau : ce plugin ne fait que lire/écrire un fichier de
  * préférences local à l'application.
@@ -25,12 +27,15 @@ public class WidgetBridgePlugin extends Plugin {
         String todayKey = call.getString("todayKey", "");
         Integer count = call.getInt("count", 0);
         Integer goal = call.getInt("goal", 10);
+        // `0` (et non `null`) signale « aucune cigarette aujourd'hui ».
+        Long lastSmokedAt = call.getLong("lastSmokedAt", 0L);
 
         WidgetStorage.saveSnapshot(
                 getContext(),
                 todayKey,
                 count == null ? 0 : count,
-                goal == null ? 10 : goal
+                goal == null ? 10 : goal,
+                lastSmokedAt == null ? 0L : lastSmokedAt
         );
         SmokeWidgetProvider.refreshAll(getContext());
         call.resolve();
@@ -41,6 +46,8 @@ public class WidgetBridgePlugin extends Plugin {
         int pending = WidgetStorage.consumePending(getContext());
         JSObject result = new JSObject();
         result.put("pending", pending);
+        // Horodatage réel des cigarettes cochées depuis l'écran d'accueil.
+        result.put("lastSmokedAt", pending > 0 ? WidgetStorage.lastSmokedAt(getContext()) : 0L);
         call.resolve(result);
     }
 }

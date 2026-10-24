@@ -37,15 +37,17 @@ Voir [docs/ANDROID.md](docs/ANDROID.md).
 - **Mise à jour PWA contrôlée** : bandeau « Nouvelle version disponible » et rechargement au
   clic (`SKIP_WAITING`), au lieu d'un service worker qui prend la main sans prévenir.
 - **Stockage persistant** : demande `navigator.storage.persist()` pour limiter les purges.
-- **Widget natif Android** (APK) : compteur du jour + ajout en un tap, fusionné au lancement.
+- **Widget natif Android** (APK) : compteur, dernière cigarette, décompte de la prochaine et
+  ajout en un tap, fusionné au lancement avec son heure réelle.
 - **Raccourcis d'écran d'accueil** (PWA) : `?action=add`.
 - **Ajout en un tap depuis l'écran d'accueil** : raccourci `?action=add` (voir ci-dessous).
 
 ## Widget & accès rapide depuis l'écran d'accueil
 
 **Dans l'application Android (APK)** : un **vrai widget natif** est disponible — compteur du
-jour, objectif, et bouton « + Une cigarette » qui enregistre sans ouvrir l'application. Voir
-[docs/ANDROID.md](docs/ANDROID.md#widget-natif-décran-daccueil).
+jour, objectif, **heure de la dernière cigarette**, **compte à rebours vers la prochaine** (qui
+passe en « en retard de … »), et bouton « + Une cigarette » qui enregistre sans ouvrir
+l'application. Voir [docs/ANDROID.md](docs/ANDROID.md#widget-natif-décran-daccueil).
 
 **Dans un navigateur (PWA)** : un widget natif est impossible (App Widget Android ou WidgetKit
 iOS exigent du code natif). Trois équivalents fonctionnels sont fournis :
@@ -138,7 +140,7 @@ localStorage["smokertrack.v1"] = {
 ## Tests
 
 ```bash
-npm test     # 100 tests
+npm test     # 116 tests
 ```
 
 | Fichier | Couverture |

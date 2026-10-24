@@ -1,8 +1,9 @@
 "use client";
 
 import { encouragement } from "@/lib/domain";
-import { formatLongDate, formatTime } from "@/lib/date";
+import { formatLongDate, formatRelativeTime } from "@/lib/date";
 import type { DailyStats } from "@/lib/domain";
+import NextCigarette from "./NextCigarette";
 import { PlusIcon, UndoIcon } from "./icons";
 import styles from "./tracker.module.css";
 
@@ -10,7 +11,10 @@ interface CounterCardProps {
   stats: DailyStats;
   todayKey: string;
   timeZone: string;
+  /** Dernière cigarette, toutes journées confondues (affichage « Dernière : … »). */
   lastSmokedAt: Date | null;
+  /** Dernière cigarette du jour seulement (base du compte à rebours). */
+  lastSmokedToday: Date | null;
   pending: boolean;
   onAdd: () => void;
   onUndo: () => void;
@@ -21,6 +25,7 @@ export default function CounterCard({
   todayKey,
   timeZone,
   lastSmokedAt,
+  lastSmokedToday,
   pending,
   onAdd,
   onUndo,
@@ -39,7 +44,7 @@ export default function CounterCard({
         </div>
         {lastSmokedAt ? (
           <p className={styles.dayLabel}>
-            Dernière : {formatTime(lastSmokedAt, "fr-FR", timeZone)}
+            Dernière : {formatRelativeTime(lastSmokedAt, todayKey, "fr-FR", timeZone)}
           </p>
         ) : null}
       </div>
@@ -68,6 +73,13 @@ export default function CounterCard({
           style={{ width: `${percentage}%` }}
         />
       </div>
+
+      <NextCigarette
+        lastSmokedToday={lastSmokedToday}
+        goal={stats.goal}
+        todayKey={todayKey}
+        timeZone={timeZone}
+      />
 
       <p className={styles.hint}>{encouragement(stats)}</p>
 

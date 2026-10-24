@@ -1,0 +1,36 @@
+# Dépendances
+node_modules/
+.pnp
+.pnp.js
+
+# Build Next.js
+.next/
+out/
+build/
+dist/
+
+# Environnement (aucun secret n'est nécessaire, mais on protège quand même)
+.env
+.env*.local
+
+# Tests & outils
+coverage/
+.vitest/
+*.tsbuildinfo
+next-env.d.ts
+
+# Journaux
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Système / éditeurs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Divers
+*-debug.log

@@ -9,7 +9,12 @@ import {
   type SeriesPoint,
 } from "./domain";
 import { dayKey, lastDayKeys } from "./date";
-import { createLocalStore } from "./localStore";
+import {
+  createLocalStore,
+  readMeta,
+  readState,
+  shouldRemindBackup,
+} from "./localStore";
 import { downloadBackup, restoreBackup } from "./backup";
 import type { TrackerSnapshot } from "./types";
 
@@ -28,8 +33,11 @@ export interface TrackerApi {
   stats: DailyStats;
   lastSmokedAt: Date | null;
   pending: boolean;
+  needsBackupExport: boolean;
   add: () => Promise<void>;
   undo: () => Promise<void>;
+  /** Corrige une journée passée (ou du jour) de ±1. */
+  adjustDay: (date: string, delta: 1 | -1, currentCount: number) => Promise<void>;
   updateGoal: (goal: number) => Promise<void>;
   eraseAll: () => Promise<void>;
   exportBackup: () => void;
@@ -52,6 +60,7 @@ export function useTracker(): TrackerApi {
   const [snapshot, setSnapshot] = useState<TrackerSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [needsBackupExport, setNeedsBackupExport] = useState(false);
 
   useEffect(() => {
     setSnapshot(null);
@@ -70,6 +79,12 @@ export function useTracker(): TrackerApi {
 
   const goal = snapshot?.goal ?? DEFAULT_GOAL;
   const stats = useMemo(() => computeStats(series, goal), [series, goal]);
+
+  // Rappel de sauvegarde : recalculé à chaque changement de données.
+  useEffect(() => {
+    if (!snapshot) return;
+    setNeedsBackupExport(shouldRemindBackup(readState(), readMeta()));
+  }, [snapshot]);
 
   const lastSmokedAt = useMemo(() => {
     const dates = (snapshot?.entries ?? [])
@@ -96,15 +111,23 @@ export function useTracker(): TrackerApi {
   }, []);
 
   const add = useCallback(
-    () => withPending(() => store.increment(todayKey, 1, todayCount)),
+    () => withPending(() => store.increment(todayKey, 1, todayCount, true)),
     [store, todayKey, todayCount, withPending],
   );
 
   const undo = useCallback(() => {
     const lastNonEmpty = [...series].reverse().find((point) => point.count > 0);
     if (!lastNonEmpty) return Promise.resolve();
-    return withPending(() => store.increment(lastNonEmpty.date, -1, lastNonEmpty.count));
-  }, [series, store, withPending]);
+    return withPending(() =>
+      store.increment(lastNonEmpty.date, -1, lastNonEmpty.count, lastNonEmpty.date === todayKey),
+    );
+  }, [series, store, todayKey, withPending]);
+
+  const adjustDay = useCallback(
+    (date: string, delta: 1 | -1, currentCount: number) =>
+      withPending(() => store.increment(date, delta, currentCount, date === todayKey)),
+    [store, todayKey, withPending],
+  );
 
   const updateGoal = useCallback(
     (nextGoal: number) => withPending(() => store.setGoal(nextGoal)),
@@ -116,11 +139,10 @@ export function useTracker(): TrackerApi {
   const exportBackupNow = useCallback(() => {
     try {
       downloadBackup();
+      setNeedsBackupExport(false);
       setError(null);
     } catch (exportError) {
-      setError(
-        exportError instanceof Error ? exportError.message : "Export impossible.",
-      );
+      setError(exportError instanceof Error ? exportError.message : "Export impossible.");
     }
   }, []);
 
@@ -142,8 +164,10 @@ export function useTracker(): TrackerApi {
     stats,
     lastSmokedAt,
     pending,
+    needsBackupExport,
     add,
     undo,
+    adjustDay,
     updateGoal,
     eraseAll,
     exportBackup: exportBackupNow,

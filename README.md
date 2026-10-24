@@ -23,6 +23,29 @@ local-first** : aucun compte, aucun serveur, aucune donnée envoyée nulle part.
 - **Hors-ligne** : service worker maison, pré-cache de la coquille + stratégies réseau/cache.
 - **Passage de minuit automatique** : le compteur du jour bascule sans rechargement, et les
   calculs utilisent le fuseau horaire de l'appareil.
+- **Correction d'un jour passé** : boutons −/+ sur chaque ligne de l'historique (l'heure de la
+  dernière cigarette d'un jour passé n'est pas écrasée).
+- **Rappel de sauvegarde** : bandeau si aucun export n'a eu lieu depuis 14 jours.
+- **Stockage persistant** : demande `navigator.storage.persist()` pour limiter les purges.
+- **Badge sur l'icône** : nombre de cigarettes du jour via la Badging API (Android, iOS 16.4+).
+- **Ajout en un tap depuis l'écran d'accueil** : raccourci `?action=add` (voir ci-dessous).
+
+## Widget & accès rapide depuis l'écran d'accueil
+
+**À savoir d'abord :** une PWA ne peut pas déclarer un **widget natif** (App Widget Android ou
+WidgetKit iOS). Ces widgets exigent du code natif et une publication sur les stores. Trois
+équivalents réellement fonctionnels sont fournis :
+
+| Plateforme | Ce qui est disponible | Comment |
+|---|---|---|
+| Android / Windows / Chrome | **Raccourci en appui long sur l'icône** : « Ajouter une cigarette » (déclaré dans le manifeste via `shortcuts`) | Installer l'app, puis appui long sur l'icône |
+| iPhone / iPad | **Widget Raccourcis** : raccourci « Ouvrir des URL » vers `…/?action=add` | App Raccourcis → nouveau raccourci → widget Raccourcis sur l'écran d'accueil |
+| Android + iOS 16.4+ | **Badge** : nombre de cigarettes du jour sur l'icône | Automatique (Badging API) |
+
+Le raccourci d'ajout rapide ouvre l'application avec `?action=add` : la cigarette est
+enregistrée immédiatement, l'URL est nettoyée (`history.replaceState`) pour qu'un rechargement
+ne recompte pas, et un message de confirmation s'affiche. Un mode d'emploi intégré est présent
+dans l'application (section « Widget & accès rapide »).
 
 ## Stack
 
@@ -85,15 +108,16 @@ localStorage["smokertrack.v1"] = {
 ## Tests
 
 ```bash
-npm test     # 48 tests
+npm test     # 64 tests
 ```
 
 | Fichier | Couverture |
 |---|---|
 | `src/lib/domain.test.ts` | statistiques, bornes, séries, tendances |
 | `src/lib/date.test.ts` | clés de jour, fuseaux, heure d'été, années bissextiles |
-| `src/lib/localStore.test.ts` | incréments, plancher zéro, plafond, export/import et rejets |
+| `src/lib/localStore.test.ts` | incréments, plancher zéro, plafond, jours passés, export/import, rejets, rappel de sauvegarde |
 | `src/components/TrackerApp.test.tsx` | rendu réel (jsdom) : compteur, annulation, objectif, persistance, restauration, effacement |
+| `src/components/WidgetFeatures.test.tsx` | manifeste/raccourcis, ajout rapide `?action=add`, aide widget, correction d'un jour passé |
 
 ## Déploiement gratuit (GitHub Pages)
 
@@ -126,6 +150,9 @@ src/
 │   ├── WeeklyChart.tsx      histogramme 7 jours
 │   ├── HistoryList.tsx      historique
 │   ├── SettingsCard.tsx     objectif, export/import, effacement
+│   ├── WidgetHelp.tsx       mode d'emploi widget / raccourcis / badge
+│   ├── QuickAddHandler.tsx  traitement de ?action=add (raccourci d'accueil)
+│   ├── AppBadge.tsx         badge du nombre de cigarettes sur l'icône
 │   ├── InstallPrompt.tsx    bouton d'installation PWA
 │   ├── ServiceWorkerRegistration.tsx
 │   ├── Skeleton.tsx         écran de chargement
@@ -135,6 +162,7 @@ src/
 │   ├── date.ts              clés de jour et fuseaux (testées)
 │   ├── localStore.ts        persistance locale + validation d'import (testée)
 │   ├── backup.ts            export/restauration de fichier
+│   ├── persistence.ts       demande de stockage persistant
 │   ├── useTracker.ts        état de l'écran et actions
 │   └── types.ts             contrats de données
 public/
@@ -147,7 +175,9 @@ public/
 - **Les données sont liées à un appareil et à un navigateur.** Vider les données du site,
   désinstaller le navigateur ou changer de téléphone les efface : l'export JSON est le seul
   filet de sécurité. Une synchronisation optionnelle est la première amélioration proposée.
-- Pas de rappels/notifications, pas de suivi des rechutes ni des économies réalisées.
+- Pas de **widget natif** (impossible sans application native) ni de notifications push (qui
+  exigeraient un serveur) : seuls les raccourcis et le badge sont disponibles.
+- Pas de suivi des rechutes, des économies ou des déclencheurs (notes par cigarette).
 - Pas d'authentification : sans compte, il n'y a rien à protéger côté serveur — et rien à
   récupérer non plus.
 - L'interface est en français uniquement, et l'application n'est pas un outil médical.

@@ -30,8 +30,17 @@ export interface DailyLogStore {
     onSnapshot: (snapshot: TrackerSnapshot) => void,
     onError: (error: Error) => void,
   ): () => void;
-  /** Incrémente (ou décrémente) la journée. `currentCount` sert de garde-fou bas. */
-  increment(dayKey: string, delta: 1 | -1, currentCount: number): Promise<void>;
+  /**
+   * Incrémente (ou décrémente) une journée. `currentCount` sert de garde-fou bas.
+   * `isToday = false` permet de corriger un jour passé sans toucher à l'heure de
+   * la dernière cigarette.
+   */
+  increment(
+    dayKey: string,
+    delta: 1 | -1,
+    currentCount: number,
+    isToday?: boolean,
+  ): Promise<void>;
   setGoal(goal: number): Promise<void>;
   /** Suppression totale des données personnelles. */
   deleteAll(): Promise<void>;

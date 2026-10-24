@@ -1,6 +1,6 @@
 {
   "name": "smokertrack",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "private": true,
   "description": "Suivi personnel de consommation de cigarettes — PWA local-first, hébergeable gratuitement",
   "license": "MIT",

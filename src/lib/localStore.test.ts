@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { applyIncrement, parseBackup, toBackup, type PersistedState } from "./localStore";
+import {
+  BACKUP_REMINDER_DAYS,
+  applyIncrement,
+  parseBackup,
+  shouldRemindBackup,
+  toBackup,
+  type PersistedState,
+} from "./localStore";
 
 const emptyState: PersistedState = { goal: 10, days: {} };
 const now = new Date("2026-05-10T18:00:00.000Z");
@@ -108,5 +115,59 @@ describe("parseBackup", () => {
     });
     expect(parsed.days["2026-05-10"]).toBeUndefined();
     expect(parsed.days["2026-05-11"]).toEqual({ count: 3, lastSmokedAt: null });
+  });
+});
+
+describe("applyIncrement sur un jour passé", () => {
+  it("ne modifie pas l'heure de la dernière cigarette", () => {
+    const state: PersistedState = { goal: 10, days: {} };
+    const next = applyIncrement(state, "2026-05-01", 1, now, false);
+    expect(next.days["2026-05-01"]).toEqual({ count: 1, lastSmokedAt: null });
+  });
+
+  it("conserve l'heure déjà enregistrée", () => {
+    const state: PersistedState = {
+      goal: 10,
+      days: { "2026-05-01": { count: 2, lastSmokedAt: "2026-05-01T20:00:00.000Z" } },
+    };
+    const next = applyIncrement(state, "2026-05-01", 1, now, false);
+    expect(next.days["2026-05-01"]?.count).toBe(3);
+    expect(next.days["2026-05-01"]?.lastSmokedAt).toBe("2026-05-01T20:00:00.000Z");
+  });
+
+  it("met bien à jour l'heure pour aujourd'hui (comportement par défaut)", () => {
+    const state: PersistedState = { goal: 10, days: {} };
+    const next = applyIncrement(state, "2026-05-10", 1, now);
+    expect(next.days["2026-05-10"]?.lastSmokedAt).toBe(now.toISOString());
+  });
+});
+
+describe("shouldRemindBackup", () => {
+  const withData: PersistedState = {
+    goal: 10,
+    days: { "2026-05-10": { count: 3, lastSmokedAt: null } },
+  };
+
+  it("ne rappelle rien sans données", () => {
+    expect(shouldRemindBackup({ goal: 10, days: {} }, { lastExportAt: null }, now)).toBe(false);
+  });
+
+  it("rappelle quand aucun export n'a jamais eu lieu", () => {
+    expect(shouldRemindBackup(withData, { lastExportAt: null }, now)).toBe(true);
+  });
+
+  it("ne rappelle pas juste après un export", () => {
+    expect(
+      shouldRemindBackup(withData, { lastExportAt: now.toISOString() }, now),
+    ).toBe(false);
+  });
+
+  it("rappelle après le délai configuré", () => {
+    const old = new Date(now.getTime() - (BACKUP_REMINDER_DAYS + 1) * 86_400_000);
+    expect(shouldRemindBackup(withData, { lastExportAt: old.toISOString() }, now)).toBe(true);
+  });
+
+  it("rappelle si la date d'export est corrompue", () => {
+    expect(shouldRemindBackup(withData, { lastExportAt: "pas-une-date" }, now)).toBe(true);
   });
 });

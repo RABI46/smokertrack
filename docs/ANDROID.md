@@ -33,7 +33,8 @@ npm run android:apk       # build web + sync + ./gradlew assembleDebug
 # → android/app/build/outputs/apk/debug/app-debug.apk
 ```
 
-Prérequis : JDK 21, Android SDK (API 36, build-tools 36.0.0), `ANDROID_HOME` défini.
+Prérequis : **Node 22+** (exigé par Capacitor 8), JDK 21, Android SDK (API 36,
+build-tools 36.0.0), `ANDROID_HOME` défini.
 `npm run android:open` ouvre le projet dans Android Studio.
 
 ## Signature de production

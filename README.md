@@ -75,7 +75,7 @@ Détails, signature, keystore et limites : [docs/ANDROID.md](docs/ANDROID.md).
 | Élément | Choix |
 |---|---|
 | Framework | Next.js 14 (App Router) en **export statique** (`output: "export"`) |
-| Android | Capacitor 8 (WebView), `io.github.rabi46.smokertrack`, minSdk 24 |
+| Android | Capacitor 8 (WebView), `io.github.rabi46.smokertrack`, minSdk 24 — **Node ≥ 22 requis** |
 | Langage | TypeScript strict (`noUncheckedIndexedAccess`) |
 | UI | React 18 + CSS Modules (aucune librairie UI, aucune police distante) |
 | Persistance | `localStorage` versionné, derrière une interface `DailyLogStore` |

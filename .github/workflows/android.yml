@@ -18,7 +18,7 @@ on:
   workflow_dispatch:
 
 env:
-  NODE_VERSION: "20.x"
+  NODE_VERSION: "22.x"
   NEXT_TELEMETRY_DISABLED: "1"
 
 permissions:

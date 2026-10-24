@@ -6,6 +6,7 @@ import AppBadge from "./AppBadge";
 import CounterCard from "./CounterCard";
 import HistoryList from "./HistoryList";
 import InstallPrompt from "./InstallPrompt";
+import NativeShell from "./NativeShell";
 import QuickAddHandler from "./QuickAddHandler";
 import ServiceWorkerRegistration from "./ServiceWorkerRegistration";
 import SettingsCard from "./SettingsCard";
@@ -43,6 +44,7 @@ export default function TrackerApp() {
 
   return (
     <div className={styles.shell}>
+      <NativeShell />
       <ServiceWorkerRegistration />
       <AppBadge count={tracker.stats.today} />
       <QuickAddHandler onAdd={() => void tracker.add()} />
@@ -135,7 +137,7 @@ export default function TrackerApp() {
         <span>
           Données locales, sans compte — <Link href="/confidentialite">confidentialité</Link>
         </span>
-        <span>SmokeTracker v1.2.0</span>
+        <span>SmokeTracker v1.3.0</span>
       </footer>
     </div>
   );

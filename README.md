@@ -4,6 +4,8 @@ Suivi personnel de consommation de cigarettes — **PWA installable, hors-ligne 
 local-first** : aucun compte, aucun serveur, aucune donnée envoyée nulle part.
 
 **Application en ligne : <https://rabi46.github.io/smokertrack/>**
+**Application Android (APK) :** artefact du workflow *Android APK* dans l'onglet Actions du
+dépôt — voir [docs/ANDROID.md](docs/ANDROID.md).
 
 > Le suivi du tabagisme est une donnée de santé. L'application ne stocke donc rien ailleurs
 > que dans le navigateur de l'utilisateur, et propose un export de sauvegarde ainsi qu'un
@@ -53,11 +55,27 @@ enregistrée immédiatement, l'URL est nettoyée (`history.replaceState`) pour q
 ne recompte pas, et un message de confirmation s'affiche. Un mode d'emploi intégré est présent
 dans l'application (section « Widget & accès rapide »).
 
+## Application Android
+
+Le même code est empaqueté en **APK installable** via Capacitor : l'export statique est
+embarqué dans un WebView, sans dupliquer une ligne de logique métier.
+
+```bash
+npm run android:sync   # build web + copie dans le projet Android
+npm run android:apk    # APK de debug  → android/app/build/outputs/apk/debug/
+npm run android:bundle # AAB pour le Play Store
+```
+
+La compilation nécessite le SDK Android (absent de l'environnement de développement), donc
+l'APK est produit par GitHub Actions à chaque push : **Actions → Android APK → Artifacts**.
+Détails, signature, keystore et limites : [docs/ANDROID.md](docs/ANDROID.md).
+
 ## Stack
 
 | Élément | Choix |
 |---|---|
 | Framework | Next.js 14 (App Router) en **export statique** (`output: "export"`) |
+| Android | Capacitor 8 (WebView), `io.github.rabi46.smokertrack`, minSdk 24 |
 | Langage | TypeScript strict (`noUncheckedIndexedAccess`) |
 | UI | React 18 + CSS Modules (aucune librairie UI, aucune police distante) |
 | Persistance | `localStorage` versionné, derrière une interface `DailyLogStore` |
@@ -160,6 +178,7 @@ src/
 │   ├── WidgetHelp.tsx       mode d'emploi widget / raccourcis / badge
 │   ├── QuickAddHandler.tsx  traitement de ?action=add (raccourci d'accueil)
 │   ├── AppBadge.tsx         badge du nombre de cigarettes sur l'icône
+│   ├── NativeShell.tsx      adaptations APK (barre d'état, bouton retour)
 │   ├── InstallPrompt.tsx    bouton d'installation PWA
 │   ├── ServiceWorkerRegistration.tsx
 │   ├── Skeleton.tsx         écran de chargement
@@ -175,6 +194,8 @@ src/
 public/
 ├── sw.js                    service worker (pré-cache + repli hors-ligne)
 ├── icon-*.png, favicon.ico, .nojekyll
+android/                     projet Android (Capacitor) : icônes, splash, manifeste
+capacitor.config.ts          configuration de l'application Android
 ```
 
 ## Limites connues
@@ -182,8 +203,9 @@ public/
 - **Les données sont liées à un appareil et à un navigateur.** Vider les données du site,
   désinstaller le navigateur ou changer de téléphone les efface : l'export JSON (manuel ou
   hebdomadaire automatique) est le seul filet de sécurité. Une synchronisation optionnelle est la première amélioration proposée.
-- Pas de **widget natif** (impossible sans application native) ni de notifications push (qui
-  exigeraient un serveur) : seuls les raccourcis et le badge sont disponibles.
+- Pas de **widget natif** : possible techniquement dans l'APK (code Kotlin), mais non
+  implémenté ; en PWA c'est impossible par nature. Ni notifications push (serveur requis) :
+  seuls les raccourcis et le badge sont disponibles.
 - Pas de suivi des rechutes, des économies ou des déclencheurs (notes par cigarette).
 - Pas d'authentification : sans compte, il n'y a rien à protéger côté serveur — et rien à
   récupérer non plus.

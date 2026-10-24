@@ -22,6 +22,11 @@ export default function ServiceWorkerRegistration() {
   useEffect(() => {
     if (typeof window === "undefined") return;
     if (!("serviceWorker" in navigator)) return;
+    // Dans l'APK, les fichiers sont déjà embarqués : un service worker
+    // n'apporterait qu'un risque de contenu périmé.
+    const capacitor = (window as unknown as { Capacitor?: { isNativePlatform?: () => boolean } })
+      .Capacitor;
+    if (capacitor?.isNativePlatform?.()) return;
     // En développement, un service worker masquerait les changements.
     if (process.env.NODE_ENV !== "production") return;
 

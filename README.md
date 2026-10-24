@@ -1,11 +1,13 @@
 # SmokeTracker
 
-Suivi personnel de consommation de cigarettes — application web progressive (PWA),
-installable, qui fonctionne hors-ligne et stocke vos données dans **votre** projet Firebase.
+Suivi personnel de consommation de cigarettes — **PWA installable, hors-ligne et
+local-first** : aucun compte, aucun serveur, aucune donnée envoyée nulle part.
 
-> **Donnée de santé.** Le projet est conçu pour rester privé : aucune analytique, aucun
-> traceur tiers, un utilisateur ne peut accéder qu'à ses propres documents (règles Firestore),
-> et un bouton efface l'intégralité des données. Voir [la page confidentialité](/src/app/confidentialite/page.tsx).
+**Application en ligne : <https://rabi46.github.io/smokertrack/>**
+
+> Le suivi du tabagisme est une donnée de santé. L'application ne stocke donc rien ailleurs
+> que dans le navigateur de l'utilisateur, et propose un export de sauvegarde ainsi qu'un
+> effacement total. Voir [la page confidentialité](src/app/confidentialite/page.tsx).
 
 ## Fonctionnalités
 
@@ -13,144 +15,142 @@ installable, qui fonctionne hors-ligne et stocke vos données dans **votre** pro
 - **Objectif quotidien** réglable (1–100) et barre de progression.
 - **Tendances** : moyenne sur 7 jours, total sur 30 jours, comparaison avec la semaine
   précédente, jours dans l'objectif, série en cours.
-- **Graphique** des 7 derniers jours (HTML/CSS, sans librairie de graphes).
-- **Historique** des 10 derniers jours.
-- **Mode démo local** automatique tant que Firebase n'est pas configuré (données dans le
-  navigateur, pratique pour tester ou faire une démo).
-- **Hors-ligne** : cache persistant Firestore — une saisie faite sans réseau est mise en
-  file et synchronisée au retour de la connexion.
-- **PWA** installable (manifeste + service worker générés au build).
+- **Histogramme** des 7 derniers jours et **historique** des 10 derniers jours.
+- **Sauvegarde** : export JSON et restauration en un clic (indispensable puisque les données
+  sont locales).
+- **Installation** sur l'écran d'accueil (bouton « Installer », ou « Partager → Sur l'écran
+  d'accueil » sur iOS).
+- **Hors-ligne** : service worker maison, pré-cache de la coquille + stratégies réseau/cache.
+- **Passage de minuit automatique** : le compteur du jour bascule sans rechargement, et les
+  calculs utilisent le fuseau horaire de l'appareil.
 
 ## Stack
 
-| Élément | Choix | Notes |
-|---|---|---|
-| Framework | Next.js 14 (App Router) | rendu statique, `output: "standalone"` |
-| Langage | TypeScript strict | `noUncheckedIndexedAccess` activé |
-| UI | React 18 + CSS Modules | aucun framework CSS, aucun composant tiers |
-| Données | Firebase Auth + Firestore | connexion anonyme + cache persistant |
-| PWA | `@ducanh2912/next-pwa` | successeur maintenu de `next-pwa` (abandonné en 2022) |
-| Tests | Vitest + Testing Library | logique métier + rendu de l'interface |
-| Qualité | ESLint (`next/core-web-vitals`) | exécuté aussi pendant `next build` |
+| Élément | Choix |
+|---|---|
+| Framework | Next.js 14 (App Router) en **export statique** (`output: "export"`) |
+| Langage | TypeScript strict (`noUncheckedIndexedAccess`) |
+| UI | React 18 + CSS Modules (aucune librairie UI, aucune police distante) |
+| Persistance | `localStorage` versionné, derrière une interface `DailyLogStore` |
+| PWA | manifeste typé (`app/manifest.ts`) + `public/sw.js` écrit à la main |
+| Tests | Vitest + Testing Library (48 tests) |
+| Hébergement | GitHub Pages via GitHub Actions |
+
+Aucune dépendance runtime hormis Next et React : ni Firebase, ni SDK tiers, ni
+service worker généré par un plugin abandonné.
 
 ## Démarrage
 
 ```bash
-npm ci                # installe les dépendances exactes du lockfile
-cp .env.example .env.local   # facultatif : sans clés, l'app démarre en mode démo
-npm run dev           # http://localhost:3000
+npm ci
+npm run dev            # http://localhost:3000
 ```
-
-Scripts disponibles :
 
 | Commande | Rôle |
 |---|---|
 | `npm run dev` | serveur de développement |
-| `npm run build` | build de production (lint + typecheck inclus) |
-| `npm start` | serveur de production |
-| `npm test` | tests unitaires et de rendu |
+| `npm run build` | export statique dans `out/` |
+| `npm run preview` | sert `out/` sur http://localhost:4173 |
+| `npm test` | tests unitaires + tests de rendu |
 | `npm run lint` | ESLint |
 | `npm run typecheck` | `tsc --noEmit` |
-| `npm run emulators` | émulateurs Firebase Auth + Firestore |
-| `npm run deploy:rules` | publication des règles Firestore |
 
-## Configurer Firebase
+Pour reproduire l'hébergement GitHub Pages en local (site servi sous `/smokertrack/`) :
 
-1. Créer un projet sur la [console Firebase](https://console.firebase.google.com/) — **choisir
-   une région européenne** (par ex. `europe-west1`) pour limiter les transferts hors UE.
-2. Activer **Firestore** (mode production) et **Authentication → Anonyme**.
-3. Ajouter une application web et copier la configuration SDK dans `.env.local`
-   (modèle : `.env.example`).
-4. Publier les règles de sécurité :
-
-   ```bash
-   npm install -g firebase-tools
-   firebase login
-   firebase use --add        # sélectionner le projet
-   npm run deploy:rules
-   ```
-
-Sans ces règles, Firestore refuse toute lecture/écriture : l'application basculerait en
-erreur visible plutôt que d'exposer des données.
-
-### Modèle de données
-
-```
-users/{uid}                → { goal: number }
-users/{uid}/daily/{AAAA-MM-JJ}
-                           → { count: number, lastSmokedAt: Timestamp serveur }
+```bash
+NEXT_PUBLIC_BASE_PATH=/smokertrack npm run build
+# puis servir `out/` dans un dossier nommé `smokertrack/`
 ```
 
-Un document par jour (et non par cigarette) : les écritures sont atomiques
-(`increment()`), les lectures tiennent dans une seule requête, et le coût reste constant
-quelle que soit la consommation.
+## Données : où et comment
+
+```
+localStorage["smokertrack.v1"] = {
+  goal: 10,
+  days: {
+    "2026-10-24": { count: 4, lastSmokedAt: "2026-10-24T18:12:00.000Z" },
+    ...
+  }
+}
+```
+
+- Un enregistrement par jour (pas par cigarette) : quelques octets par jour.
+- La clé `smokertrack.demo.v1` de l'ancienne version est migrée automatiquement, puis
+  supprimée.
+- L'export JSON utilise le même format, enveloppé dans
+  `{ format, version, exportedAt, goal, days }` et validé à l'import.
+- `src/lib/localStore.ts` expose une interface `DailyLogStore` : une synchronisation
+  optionnelle (Drive, WebDAV, Supabase…) pourrait être ajoutée sans toucher à l'interface.
 
 ## Tests
 
 ```bash
-npm test          # 38 tests
+npm test     # 48 tests
 ```
 
-- `src/lib/domain.test.ts` — statistiques, bornes, séries, tendances.
-- `src/lib/date.test.ts` — clés de jour, fuseaux horaires, heure d'été, années bissextiles.
-- `src/lib/demoStore.test.ts` — incréments/décréments, immutabilité, plancher à zéro.
-- `src/components/TrackerApp.test.tsx` — rendu réel (jsdom) : compteur, ajout, annulation,
-  objectif, effacement.
+| Fichier | Couverture |
+|---|---|
+| `src/lib/domain.test.ts` | statistiques, bornes, séries, tendances |
+| `src/lib/date.test.ts` | clés de jour, fuseaux, heure d'été, années bissextiles |
+| `src/lib/localStore.test.ts` | incréments, plancher zéro, plafond, export/import et rejets |
+| `src/components/TrackerApp.test.tsx` | rendu réel (jsdom) : compteur, annulation, objectif, persistance, restauration, effacement |
 
-## Déploiement (Azure App Service)
+## Déploiement gratuit (GitHub Pages)
 
-Le workflow `.github/workflows/azure-webapps-node.yml` exécute lint + typecheck + tests +
-build sur chaque PR et chaque push, puis déploie sur `main` **uniquement si** la variable de
-dépôt `AZURE_WEBAPP_NAME` est définie.
+Le workflow `.github/workflows/pages.yml` exécute lint + types + tests, construit l'export
+statique et le publie sur GitHub Pages à chaque push. Aucun secret n'est nécessaire.
 
-À configurer dans le dépôt :
+Activation, une seule fois : **Settings → Pages → Source : GitHub Actions**.
 
-| Type | Nom | Valeur |
-|---|---|---|
-| Variable | `AZURE_WEBAPP_NAME` | nom de l'App Service |
-| Secret | `AZURE_WEBAPP_PUBLISH_PROFILE` | profil de publication Azure |
-| Secret | `NEXT_PUBLIC_FIREBASE_*` (×6) | configuration Firebase de production |
+L'URL publique est `https://<utilisateur>.github.io/<dépôt>/`, d'où la variable
+`NEXT_PUBLIC_BASE_PATH=/smokertrack` dans le workflow. Pour un domaine racine (dépôt
+`<utilisateur>.github.io` ou domaine personnalisé), laisser cette variable vide.
 
-L'artefact déployé est la sortie `standalone` de Next (`node server.js`), pas le dépôt entier.
+Autres hébergeurs statiques gratuits compatibles, sans changement de code : Cloudflare Pages,
+Netlify, Vercel (build `npm run build`, dossier `out`).
 
 ## Structure
 
 ```
 src/
 ├── app/
-│   ├── layout.tsx           métadonnées, viewport, thème
+│   ├── layout.tsx           métadonnées, viewport, icônes
 │   ├── page.tsx             page unique
-│   ├── manifest.ts          manifeste PWA typé
-│   ├── globals.css          variables de thème + base
+│   ├── manifest.ts          manifeste PWA (URL relatives)
+│   ├── globals.css          thème clair/sombre + base
 │   └── confidentialite/     information RGPD
 ├── components/
-│   ├── TrackerApp.tsx       orchestration + états (chargement, erreur, démo)
+│   ├── TrackerApp.tsx       orchestration, états, en-tête
 │   ├── CounterCard.tsx      compteur, progression, actions
 │   ├── StatsGrid.tsx        indicateurs de tendance
 │   ├── WeeklyChart.tsx      histogramme 7 jours
 │   ├── HistoryList.tsx      historique
-│   ├── SettingsCard.tsx     objectif + effacement
+│   ├── SettingsCard.tsx     objectif, export/import, effacement
+│   ├── InstallPrompt.tsx    bouton d'installation PWA
+│   ├── ServiceWorkerRegistration.tsx
+│   ├── Skeleton.tsx         écran de chargement
 │   └── icons.tsx            icônes SVG inline
-└── lib/
-    ├── domain.ts            règles métier pures (testées)
-    ├── date.ts              clés de jour et fuseaux (testées)
-    ├── types.ts             contrats de données
-    ├── firebase.ts          initialisation SDK (env)
-    ├── firestoreStore.ts    persistance Firestore
-    ├── demoStore.ts         persistance locale (mode démo)
-    ├── store.ts             sélection de l'implémentation
-    ├── useAuthUser.ts       session anonyme Firebase
-    └── useTracker.ts        état de l'écran, actions
+├── lib/
+│   ├── domain.ts            règles métier pures (testées)
+│   ├── date.ts              clés de jour et fuseaux (testées)
+│   ├── localStore.ts        persistance locale + validation d'import (testée)
+│   ├── backup.ts            export/restauration de fichier
+│   ├── useTracker.ts        état de l'écran et actions
+│   └── types.ts             contrats de données
+public/
+├── sw.js                    service worker (pré-cache + repli hors-ligne)
+├── icon-*.png, favicon.ico, .nojekyll
 ```
 
 ## Limites connues
 
-- L'authentification est **anonyme** : sans liaison à une adresse e-mail, les données sont
-  perdues si le stockage du navigateur est vidé ou sur un autre appareil. La liaison de
-  compte est prévue dans la feuille de route.
-- Les données ne sont pas chiffrées de bout en bout : elles sont lisibles par l'administrateur
-  du projet Firebase (vous-même).
-- L'application n'est pas un outil médical et n'affiche aucun conseil de sevrage.
+- **Les données sont liées à un appareil et à un navigateur.** Vider les données du site,
+  désinstaller le navigateur ou changer de téléphone les efface : l'export JSON est le seul
+  filet de sécurité. Une synchronisation optionnelle est la première amélioration proposée.
+- Pas de rappels/notifications, pas de suivi des rechutes ni des économies réalisées.
+- Pas d'authentification : sans compte, il n'y a rien à protéger côté serveur — et rien à
+  récupérer non plus.
+- L'interface est en français uniquement, et l'application n'est pas un outil médical.
 
 ## Licence
 

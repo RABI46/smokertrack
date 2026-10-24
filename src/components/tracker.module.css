@@ -64,10 +64,18 @@
   font-weight: 600;
 }
 
-.badgeDemo {
-  border-color: rgba(251, 191, 36, 0.45);
-  color: #fbbf24;
-  background: rgba(251, 191, 36, 0.1);
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.buttonRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 14px;
 }
 
 .card {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { MAX_GOAL, MIN_GOAL } from "@/lib/domain";
 import { ShieldIcon } from "./icons";
 import styles from "./tracker.module.css";
@@ -9,6 +10,8 @@ interface SettingsCardProps {
   pending: boolean;
   onChangeGoal: (goal: number) => void;
   onEraseAll: () => void;
+  onExport: () => void;
+  onImport: (file: File) => void;
 }
 
 export default function SettingsCard({
@@ -16,7 +19,11 @@ export default function SettingsCard({
   pending,
   onChangeGoal,
   onEraseAll,
+  onExport,
+  onImport,
 }: SettingsCardProps) {
+  const fileInput = useRef<HTMLInputElement>(null);
+
   const decrement = () => onChangeGoal(Math.max(MIN_GOAL, goal - 1));
   const increment = () => onChangeGoal(Math.min(MAX_GOAL, goal + 1));
 
@@ -32,11 +39,7 @@ export default function SettingsCard({
 
       <div className={styles.settingsRow}>
         <span id="objectif-label">Objectif quotidien</span>
-        <div
-          className={styles.stepper}
-          role="group"
-          aria-labelledby="objectif-label"
-        >
+        <div className={styles.stepper} role="group" aria-labelledby="objectif-label">
           <button
             type="button"
             className={styles.stepButton}
@@ -61,10 +64,43 @@ export default function SettingsCard({
         </div>
       </div>
 
-      <div className={styles.settingsRow} style={{ marginTop: 20 }}>
+      <div className={styles.settingsRow} style={{ marginTop: 22 }}>
         <span className={styles.hint}>
-          <ShieldIcon /> Vos données restent dans votre projet Firebase.
+          <ShieldIcon /> Vos données ne quittent jamais cet appareil. Pensez à exporter une
+          sauvegarde avant de vider le navigateur ou de changer de téléphone.
         </span>
+      </div>
+
+      <div className={styles.buttonRow}>
+        <button
+          type="button"
+          className={`${styles.ghostButton} ${styles.smallButton}`}
+          onClick={onExport}
+          disabled={pending}
+        >
+          Exporter mes données
+        </button>
+        <button
+          type="button"
+          className={`${styles.ghostButton} ${styles.smallButton}`}
+          onClick={() => fileInput.current?.click()}
+          disabled={pending}
+        >
+          Restaurer une sauvegarde
+        </button>
+        <input
+          ref={fileInput}
+          type="file"
+          accept="application/json,.json"
+          className="visually-hidden"
+          aria-label="Choisir un fichier de sauvegarde SmokeTracker"
+          onChange={(event) => {
+            const file = event.target.files?.[0];
+            if (file) onImport(file);
+            // Permet de réimporter le même fichier ensuite.
+            event.target.value = "";
+          }}
+        />
         <button
           type="button"
           className={`${styles.ghostButton} ${styles.smallButton} ${styles.dangerButton}`}

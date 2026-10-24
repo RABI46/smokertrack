@@ -9,18 +9,9 @@ out/
 build/
 dist/
 
-# Artefacts de la PWA générés au build (ne jamais committer)
-public/sw.js
-public/sw.js.map
-public/workbox-*.js
-public/workbox-*.js.map
-public/fallback-*.js
-public/swe-worker-*.js
-
-# Environnement — ne jamais committer de secrets
+# Environnement (aucun secret n'est nécessaire, mais on protège quand même)
 .env
 .env*.local
-!.env.example
 
 # Tests & outils
 coverage/
@@ -41,12 +32,5 @@ Thumbs.db
 .vscode/*
 !.vscode/extensions.json
 
-# Firebase
-.firebase/
-firebase-debug.log
-firestore-debug.log
-ui-debug.log
+# Divers
 *-debug.log
-
-# Azure
-.azure/

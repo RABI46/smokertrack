@@ -2,6 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import TrackerApp from "./TrackerApp";
+import { dayKey } from "@/lib/date";
 
 /** `next/link` est remplacé par une ancre simple dans l'environnement de test. */
 vi.mock("next/link", () => ({
@@ -24,19 +25,20 @@ describe("TrackerApp", () => {
   afterEach(() => {
     cleanup();
     vi.unstubAllGlobals();
+    vi.restoreAllMocks();
   });
 
-  it("affiche le compteur du jour à zéro en mode démo", async () => {
+  it("affiche un compteur à zéro et l'objectif par défaut", async () => {
     render(<TrackerApp />);
 
     // Le rendu réel n'arrive qu'après le montage (pas de décalage d'hydratation).
-    expect(await screen.findByText("Mode démo local")).toBeTruthy();
+    expect(await screen.findByText("Sur cet appareil")).toBeTruthy();
     expect(screen.getByRole("progressbar")).toBeTruthy();
     expect(screen.getByText("Journée vierge : le meilleur départ possible.")).toBeTruthy();
     expect(screen.getByText("objectif 10")).toBeTruthy();
   });
 
-  it("incrémente le compteur au clic", async () => {
+  it("incrémente le compteur à chaque clic", async () => {
     render(<TrackerApp />);
 
     const addButton = await screen.findByRole("button", {
@@ -81,11 +83,27 @@ describe("TrackerApp", () => {
 
   it("modifie l'objectif quotidien", async () => {
     render(<TrackerApp />);
-    await screen.findByText("Mode démo local");
+    await screen.findByText("Sur cet appareil");
 
     fireEvent.click(screen.getByRole("button", { name: "Augmenter l'objectif d'une cigarette" }));
 
     await waitFor(() => expect(screen.getByText("objectif 11")).toBeTruthy());
+  });
+
+  it("conserve les données après un remontage (persistance)", async () => {
+    const { unmount } = render(<TrackerApp />);
+    fireEvent.click(
+      await screen.findByRole("button", { name: "Ajouter une cigarette à aujourd'hui" }),
+    );
+    await waitFor(() =>
+      expect(screen.getByText("Encore 9 cigarettes dans l'objectif.")).toBeTruthy(),
+    );
+
+    unmount();
+    render(<TrackerApp />);
+    await waitFor(() =>
+      expect(screen.getByText("Encore 9 cigarettes dans l'objectif.")).toBeTruthy(),
+    );
   });
 
   it("efface les données après confirmation", async () => {
@@ -107,5 +125,28 @@ describe("TrackerApp", () => {
     await waitFor(() =>
       expect(screen.getByText("Journée vierge : le meilleur départ possible.")).toBeTruthy(),
     );
+  });
+
+  it("restaure une sauvegarde importée", async () => {
+    render(<TrackerApp />);
+    await screen.findByText("Sur cet appareil");
+
+    const backup = {
+      format: "smokertrack-backup",
+      version: 1,
+      exportedAt: "2026-05-10T18:00:00.000Z",
+      goal: 7,
+      days: { [dayKey()]: { count: 3, lastSmokedAt: null } },
+    };
+    const file = new File([JSON.stringify(backup)], "sauvegarde.json", {
+      type: "application/json",
+    });
+
+    const input = screen.getByLabelText(
+      "Choisir un fichier de sauvegarde SmokeTracker",
+    ) as HTMLInputElement;
+    fireEvent.change(input, { target: { files: [file] } });
+
+    await waitFor(() => expect(screen.getByText("objectif 7")).toBeTruthy());
   });
 });

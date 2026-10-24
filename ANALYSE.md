@@ -1,10 +1,11 @@
 # Analyse du dépôt `RABI46/smokertrack`
 
-> **Statut : audit initial, puis corrections appliquées.**
-> Ce rapport décrit l'état du dépôt au commit `21286d7`. Les points signalés dans les
-> sections 4 à 6 ont depuis été corrigés : voir la section 10 « Corrections appliquées »
-> pour la traçabilité point par point. Le contenu ci-dessous est conservé tel quel afin
-> de garder la mémoire des problèmes et de leurs justifications.
+> **Statut : audit initial (commit `21286d7`), corrections appliquées, puis réorientation.**
+> Ce rapport est conservé comme mémoire des problèmes d'origine. Depuis, Firebase a été
+> retiré : l'application est devenue **local-first** (aucun serveur, aucun compte) et est
+> publiée gratuitement sur GitHub Pages. Les sections ci-dessous décrivant Firestore,
+> l'authentification ou le workflow Azure décrivent donc un état historique — voir le
+> README pour l'architecture actuelle.
 
 > Rapport statique + vérifications exécutées le 2026-10-24, branche `arena/b6a80e89-smokertrack`
 > (identique à `main`, commit `21286d7`).

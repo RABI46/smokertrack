@@ -4,37 +4,39 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import CounterCard from "./CounterCard";
 import HistoryList from "./HistoryList";
+import InstallPrompt from "./InstallPrompt";
+import ServiceWorkerRegistration from "./ServiceWorkerRegistration";
 import SettingsCard from "./SettingsCard";
 import Skeleton from "./Skeleton";
 import StatsGrid from "./StatsGrid";
 import WeeklyChart from "./WeeklyChart";
-import { FlameIcon } from "./icons";
-import { useAuthUser } from "@/lib/useAuthUser";
+import { FlameIcon, ShieldIcon } from "./icons";
 import { useTracker } from "@/lib/useTracker";
 import styles from "./tracker.module.css";
 
 export default function TrackerApp() {
-  const auth = useAuthUser();
-  const tracker = useTracker(auth.user?.uid ?? null);
+  const tracker = useTracker();
   const [mounted, setMounted] = useState(false);
 
-  // Rendu après montage uniquement : le fuseau horaire et le fuseau du jour ne
+  // Rendu après montage uniquement : le fuseau horaire et la clé du jour ne
   // sont connus que dans le navigateur (évite tout décalage d'hydratation).
   useEffect(() => setMounted(true), []);
 
-  if (!mounted || auth.loading || tracker.status === "loading") {
+  if (!mounted || tracker.status === "loading") {
     return <Skeleton />;
   }
 
   const handleErase = () => {
     const confirmed = window.confirm(
-      "Effacer définitivement toutes vos données de consommation ? Cette action est irréversible.",
+      "Effacer définitivement toutes vos données de consommation ? Cette action est irréversible : exportez d'abord une sauvegarde si nécessaire.",
     );
     if (confirmed) void tracker.eraseAll();
   };
 
   return (
     <div className={styles.shell}>
+      <ServiceWorkerRegistration />
+
       <header className={styles.header}>
         <div className={styles.brand}>
           <span className={styles.logo} aria-hidden="true">
@@ -45,33 +47,17 @@ export default function TrackerApp() {
             <span className={styles.brandSubtitle}>Suivi quotidien de consommation</span>
           </span>
         </div>
-        <span className={`${styles.badge} ${tracker.mode === "demo" ? styles.badgeDemo : ""}`}>
-          {tracker.mode === "demo" ? "Mode démo local" : "Synchronisé"}
-        </span>
-      </header>
-
-      {tracker.mode === "demo" ? (
-        <div className={`${styles.banner} ${styles.bannerInfo}`} role="status">
-          <span>
-            <strong>Mode démo.</strong> Firebase n&apos;est pas configuré : vos données restent
-            dans ce navigateur. Renseignez les variables <code>NEXT_PUBLIC_FIREBASE_*</code> pour
-            activer la synchronisation.
+        <div className={styles.headerActions}>
+          <span className={styles.badge}>
+            <ShieldIcon /> Sur cet appareil
           </span>
+          <InstallPrompt />
         </div>
-      ) : null}
+      </header>
 
       {tracker.error ? (
         <div className={`${styles.banner} ${styles.bannerError}`} role="alert">
-          <span>
-            <strong>Problème de synchronisation.</strong> {tracker.error}
-          </span>
-          <button
-            type="button"
-            className={`${styles.ghostButton} ${styles.smallButton}`}
-            onClick={() => void auth.signInAnonymously()}
-          >
-            Réessayer
-          </button>
+          <span>{tracker.error}</span>
         </div>
       ) : null}
 
@@ -96,13 +82,15 @@ export default function TrackerApp() {
         pending={tracker.pending}
         onChangeGoal={(goal) => void tracker.updateGoal(goal)}
         onEraseAll={handleErase}
+        onExport={() => tracker.exportBackup()}
+        onImport={(file) => void tracker.importBackup(file)}
       />
 
       <footer className={styles.footer}>
         <span>
-          Données de santé — <Link href="/confidentialite">confidentialité</Link>
+          Données locales, sans compte — <Link href="/confidentialite">confidentialité</Link>
         </span>
-        <span>SmokeTracker v0.2.0</span>
+        <span>SmokeTracker v1.0.0</span>
       </footer>
     </div>
   );

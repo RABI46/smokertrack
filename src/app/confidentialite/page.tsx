@@ -14,6 +14,11 @@ const CARD_STYLE = {
   marginBottom: "16px",
 } as const;
 
+const TEXT_STYLE = {
+  color: "var(--text-muted)",
+  marginBottom: 0,
+} as const;
+
 export default function PrivacyPage() {
   return (
     <main
@@ -36,48 +41,48 @@ export default function PrivacyPage() {
       </p>
 
       <section style={CARD_STYLE}>
-        <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>Données collectées</h2>
-        <ul style={{ margin: 0, paddingLeft: 20, color: "var(--text-muted)", lineHeight: 1.7 }}>
-          <li>Un identifiant technique anonyme (Firebase Auth) servant à isoler vos données.</li>
-          <li>Le nombre de cigarettes par jour et l&apos;horodatage de la dernière saisie.</li>
+        <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>Aucun serveur, aucun compte</h2>
+        <p style={TEXT_STYLE}>
+          L&apos;application est entièrement statique et ne dispose d&apos;aucun serveur
+          applicatif. Il n&apos;y a ni inscription, ni identifiant, ni cookie publicitaire, ni
+          analytique. Rien n&apos;est envoyé à l&apos;auteur de l&apos;application.
+        </p>
+      </section>
+
+      <section style={CARD_STYLE}>
+        <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>Données stockées sur votre appareil</h2>
+        <ul style={{ ...TEXT_STYLE, paddingLeft: 20, lineHeight: 1.7 }}>
+          <li>Le nombre de cigarettes par jour et l&apos;heure de la dernière saisie.</li>
           <li>Votre objectif quotidien.</li>
         </ul>
-        <p style={{ color: "var(--text-muted)", marginBottom: 0 }}>
-          Aucune donnée de localisation, aucun contact, aucune donnée publicitaire, aucun traceur
-          tiers, aucune analytique.
+        <p style={{ ...TEXT_STYLE, marginTop: 12 }}>
+          Ces informations sont enregistrées dans le <code>localStorage</code> du navigateur,
+          sous la clé <code>smokertrack.v1</code>. Elles ne transitent par aucun réseau.
         </p>
       </section>
 
       <section style={CARD_STYLE}>
         <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>Hébergement</h2>
-        <p style={{ color: "var(--text-muted)", marginBottom: 0 }}>
-          Les données sont écrites dans le projet Firebase/Firestore que <em>vous</em> avez
-          configuré. Aucun serveur intermédiaire de SmokeTracker ne les reçoit ni ne les revend.
-          Choisissez une région européenne lors de la création du projet pour limiter les
-          transferts hors UE.
-        </p>
-      </section>
-
-      <section style={CARD_STYLE}>
-        <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>Sécurité</h2>
-        <p style={{ color: "var(--text-muted)", marginBottom: 0 }}>
-          Chaque lecture et écriture est contrôlée par les règles Firestore du dépôt
-          (<code>firestore.rules</code>) : un utilisateur ne peut accéder qu&apos;aux documents
-          dont l&apos;identifiant correspond à son propre <code>uid</code>. Les horodatages sont
-          générés par le serveur, jamais par le navigateur.
+        <p style={TEXT_STYLE}>
+          La page elle-même est un fichier statique servi par GitHub Pages. Comme pour tout site
+          web, l&apos;hébergeur peut journaliser les adresses IP lors du chargement des fichiers ;
+          ces journaux ne contiennent aucune de vos consommations. Le service worker met les
+          fichiers en cache pour fonctionner hors-ligne.
         </p>
       </section>
 
       <section style={CARD_STYLE}>
         <h2 style={{ fontSize: "1.05rem", marginTop: 0 }}>Vos droits</h2>
-        <p style={{ color: "var(--text-muted)" }}>
-          Vous pouvez à tout moment consulter, corriger (bouton « Annuler ») et supprimer
-          l&apos;intégralité de vos données via « Effacer toutes mes données » sur l&apos;écran
-          principal. La suppression est immédiate et définitive.
+        <p style={TEXT_STYLE}>
+          Consulter, corriger (« Annuler »), sauvegarder (« Exporter mes données ») et supprimer
+          (« Effacer toutes mes données ») sont accessibles directement dans l&apos;application.
+          Vous pouvez aussi vider les données du site depuis les réglages du navigateur.
         </p>
-        <p style={{ color: "var(--text-muted)", marginBottom: 0 }}>
-          Durée de conservation : tant que vous ne supprimez pas vos données. L&apos;application
-          n&apos;est pas destinée aux mineurs et ne fournit aucun conseil médical.
+        <p style={{ ...TEXT_STYLE, marginTop: 12 }}>
+          Durée de conservation : tant que vous ne supprimez pas les données. Aucune copie
+          n&apos;est conservée ailleurs, donc <strong>pensez à exporter une sauvegarde</strong>{" "}
+          avant de vider le stockage ou de changer d&apos;appareil. L&apos;application n&apos;est
+          pas destinée aux mineurs et ne fournit aucun conseil médical.
         </p>
       </section>
     </main>

@@ -9,8 +9,9 @@ import {
   type SeriesPoint,
 } from "./domain";
 import { dayKey, lastDayKeys } from "./date";
-import { createDailyLogStore } from "./store";
-import type { StoreMode, TrackerSnapshot } from "./types";
+import { createLocalStore } from "./localStore";
+import { downloadBackup, restoreBackup } from "./backup";
+import type { TrackerSnapshot } from "./types";
 
 /** Profondeur d'historique conservée et observable. */
 export const WINDOW_DAYS = 30;
@@ -20,7 +21,6 @@ export type TrackerStatus = "loading" | "ready" | "error";
 export interface TrackerApi {
   status: TrackerStatus;
   error: string | null;
-  mode: StoreMode;
   timeZone: string;
   todayKey: string;
   dayKeys: string[];
@@ -32,9 +32,11 @@ export interface TrackerApi {
   undo: () => Promise<void>;
   updateGoal: (goal: number) => Promise<void>;
   eraseAll: () => Promise<void>;
+  exportBackup: () => void;
+  importBackup: (file: File) => Promise<void>;
 }
 
-export function useTracker(uid: string | null): TrackerApi {
+export function useTracker(): TrackerApi {
   // La clé du jour est recalculée périodiquement : l'interface bascule d'elle-même
   // à minuit sans rechargement.
   const [todayKey, setTodayKey] = useState(() => dayKey());
@@ -45,7 +47,7 @@ export function useTracker(uid: string | null): TrackerApi {
   }, []);
 
   const dayKeys = useMemo(() => lastDayKeys(WINDOW_DAYS, todayKey), [todayKey]);
-  const store = useMemo(() => createDailyLogStore(uid), [uid]);
+  const store = useMemo(() => createLocalStore(), []);
 
   const [snapshot, setSnapshot] = useState<TrackerSnapshot | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -109,9 +111,22 @@ export function useTracker(uid: string | null): TrackerApi {
     [store, withPending],
   );
 
-  const eraseAll = useCallback(
-    () => withPending(() => store.deleteAll(dayKeys)),
-    [store, dayKeys, withPending],
+  const eraseAll = useCallback(() => withPending(() => store.deleteAll()), [store, withPending]);
+
+  const exportBackupNow = useCallback(() => {
+    try {
+      downloadBackup();
+      setError(null);
+    } catch (exportError) {
+      setError(
+        exportError instanceof Error ? exportError.message : "Export impossible.",
+      );
+    }
+  }, []);
+
+  const importBackupFile = useCallback(
+    (file: File) => withPending(() => restoreBackup(file)),
+    [withPending],
   );
 
   const status: TrackerStatus =
@@ -120,7 +135,6 @@ export function useTracker(uid: string | null): TrackerApi {
   return {
     status,
     error,
-    mode: store.mode,
     timeZone: snapshot?.timeZone ?? "UTC",
     todayKey,
     dayKeys,
@@ -132,5 +146,7 @@ export function useTracker(uid: string | null): TrackerApi {
     undo,
     updateGoal,
     eraseAll,
+    exportBackup: exportBackupNow,
+    importBackup: importBackupFile,
   };
 }

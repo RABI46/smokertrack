@@ -151,6 +151,52 @@
   word-break: break-all;
 }
 
+.goalRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.goalInput {
+  width: 64px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.goalInput::-webkit-outer-spin-button,
+.goalInput::-webkit-inner-spin-button {
+  margin: 0;
+}
+
+.goalSlider {
+  width: 100%;
+  margin-top: 12px;
+  accent-color: var(--accent);
+}
+
+.checkboxRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.checkboxRow input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
 .buttonRow {
   display: flex;
   gap: 10px;
@@ -429,6 +475,20 @@
 
 .chartBarOk {
   background: linear-gradient(180deg, #4ade80, #22c55e);
+}
+
+.chartBarEmpty {
+  width: 68%;
+  height: 100%;
+  border-radius: 8px 8px 4px 4px;
+  border: 1px dashed var(--border);
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 4px,
+    rgba(148, 163, 184, 0.12) 4px,
+    rgba(148, 163, 184, 0.12) 8px
+  );
 }
 
 .chartBarToday {

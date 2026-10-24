@@ -10,6 +10,11 @@ export const MAX_COUNT = 200;
 export interface SeriesPoint {
   date: string;
   count: number;
+  /**
+   * `false` pour les jours antérieurs au début du suivi (aucune donnée).
+   * Ils ne doivent jamais être comptés comme des réussites.
+   */
+  tracked: boolean;
 }
 
 export interface DailyStats {
@@ -21,10 +26,14 @@ export interface DailyStats {
   best: number;
   /** Journée la plus chargée de la fenêtre. */
   worst: number;
-  /** Nombre de jours sous ou égaux à l'objectif. */
+  /** Nombre de jours suivis sous ou égaux à l'objectif. */
   daysOnTarget: number;
   /** Série de jours consécutifs (en fin de fenêtre) dans l'objectif. */
   streak: number;
+  /** Nombre de jours réellement suivis dans la fenêtre (hors jours antérieurs). */
+  trackedDays: number;
+  /** Première date suivie de la fenêtre, ou `null` si aucune donnée. */
+  firstTrackedDate: string | null;
   /** Consommation du jour (dernier point). */
   today: number;
   /** Objectif quotidien appliqué. */
@@ -45,10 +54,21 @@ export function clampCount(count: number): number {
   return Math.min(MAX_COUNT, Math.max(0, Math.round(count)));
 }
 
-/** Aligne les entrées reçues sur la liste de clés demandée (jours manquants = 0). */
+/**
+ * Aligne les entrées reçues sur la liste de clés demandée.
+ * Les jours absents valent 0 mais restent marqués `tracked: false` : ils sont
+ * affichés comme « hors suivi », jamais comme des journées réussies.
+ */
 export function buildSeries(dayKeys: string[], entries: DayEntry[]): SeriesPoint[] {
-  const byDate = new Map(entries.map((entry) => [entry.date, entry.count]));
-  return dayKeys.map((date) => ({ date, count: clampCount(byDate.get(date) ?? 0) }));
+  const byDate = new Map(entries.map((entry) => [entry.date, entry]));
+  return dayKeys.map((date) => {
+    const entry = byDate.get(date);
+    return {
+      date,
+      count: clampCount(entry?.count ?? 0),
+      tracked: entry?.tracked ?? false,
+    };
+  });
 }
 
 /**
@@ -57,6 +77,7 @@ export function buildSeries(dayKeys: string[], entries: DayEntry[]): SeriesPoint
  */
 export function computeStats(series: SeriesPoint[], goal: number): DailyStats {
   const safeGoal = clampGoal(goal);
+  const lastCount = series.length > 0 ? clampCount(series[series.length - 1]?.count ?? 0) : 0;
 
   if (series.length === 0) {
     return {
@@ -66,6 +87,8 @@ export function computeStats(series: SeriesPoint[], goal: number): DailyStats {
       worst: 0,
       daysOnTarget: 0,
       streak: 0,
+      trackedDays: 0,
+      firstTrackedDate: null,
       today: 0,
       goal: safeGoal,
       remaining: safeGoal,
@@ -73,27 +96,39 @@ export function computeStats(series: SeriesPoint[], goal: number): DailyStats {
     };
   }
 
-  const counts = series.map((point) => clampCount(point.count));
-  const total = counts.reduce((sum, value) => sum + value, 0);
-  const today = counts[counts.length - 1] ?? 0;
+  // Seuls les jours réellement suivis entrent dans les calculs.
+  const trackedPoints = series.filter((point) => point.tracked);
+  const counts = trackedPoints.map((point) => clampCount(point.count));
+  const total = counts.reduce((acc, value) => acc + value, 0);
 
+  // Série en cours : on ignore les jours non suivis en fin de fenêtre (par
+  // exemple aujourd'hui avant la première cigarette), mais un trou *entre* deux
+  // jours suivis interrompt bien la série.
   let streak = 0;
-  for (let index = counts.length - 1; index >= 0; index -= 1) {
-    if ((counts[index] ?? 0) <= safeGoal) streak += 1;
+  for (let index = series.length - 1; index >= 0; index -= 1) {
+    const point = series[index];
+    if (!point) break;
+    if (!point.tracked) {
+      if (streak === 0) continue;
+      break;
+    }
+    if (clampCount(point.count) <= safeGoal) streak += 1;
     else break;
   }
 
   return {
     total,
-    average: Math.round((total / counts.length) * 10) / 10,
-    best: Math.min(...counts),
-    worst: Math.max(...counts),
+    average: counts.length > 0 ? Math.round((total / counts.length) * 10) / 10 : 0,
+    best: counts.length > 0 ? Math.min(...counts) : 0,
+    worst: counts.length > 0 ? Math.max(...counts) : 0,
     daysOnTarget: counts.filter((value) => value <= safeGoal).length,
     streak,
-    today,
+    trackedDays: counts.length,
+    firstTrackedDate: trackedPoints[0]?.date ?? null,
+    today: lastCount,
     goal: safeGoal,
-    remaining: safeGoal - today,
-    progress: Math.min(1, today / safeGoal),
+    remaining: safeGoal - lastCount,
+    progress: Math.min(1, lastCount / safeGoal),
   };
 }
 
@@ -112,9 +147,14 @@ export function trendPercent(current: number, previous: number): number | null {
   return Math.round(((current - previous) / previous) * 100);
 }
 
-/** Somme d'une série. */
+/** Somme d'une série (jours suivis uniquement). */
 export function sum(series: SeriesPoint[]): number {
-  return series.reduce((total, point) => total + point.count, 0);
+  return series.reduce((total, point) => (point.tracked ? total + point.count : total), 0);
+}
+
+/** Nombre de jours suivis dans une série. */
+export function countTracked(series: SeriesPoint[]): number {
+  return series.filter((point) => point.tracked).length;
 }
 
 /** Tranche les `count` derniers points d'une série. */

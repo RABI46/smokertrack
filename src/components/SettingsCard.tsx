@@ -8,7 +8,9 @@ import styles from "./tracker.module.css";
 interface SettingsCardProps {
   goal: number;
   pending: boolean;
+  autoBackup: boolean;
   onChangeGoal: (goal: number) => void;
+  onToggleAutoBackup: (enabled: boolean) => void;
   onEraseAll: () => void;
   onExport: () => void;
   onImport: (file: File) => void;
@@ -17,7 +19,9 @@ interface SettingsCardProps {
 export default function SettingsCard({
   goal,
   pending,
+  autoBackup,
   onChangeGoal,
+  onToggleAutoBackup,
   onEraseAll,
   onExport,
   onImport,
@@ -37,7 +41,7 @@ export default function SettingsCard({
         jugement.
       </p>
 
-      <div className={styles.settingsRow}>
+      <div className={styles.goalRow}>
         <span id="objectif-label">Objectif quotidien</span>
         <div className={styles.stepper} role="group" aria-labelledby="objectif-label">
           <button
@@ -49,9 +53,23 @@ export default function SettingsCard({
           >
             −
           </button>
-          <output className={styles.stepValue} aria-live="polite">
-            {goal}
-          </output>
+          <label className="visually-hidden" htmlFor="objectif-valeur">
+            Objectif quotidien (cigarettes par jour)
+          </label>
+          <input
+            id="objectif-valeur"
+            className={styles.goalInput}
+            type="number"
+            min={MIN_GOAL}
+            max={MAX_GOAL}
+            step={1}
+            value={goal}
+            disabled={pending}
+            onChange={(event) => {
+              const value = Number(event.target.value);
+              if (Number.isFinite(value)) onChangeGoal(value);
+            }}
+          />
           <button
             type="button"
             className={styles.stepButton}
@@ -64,7 +82,31 @@ export default function SettingsCard({
         </div>
       </div>
 
-      <div className={styles.settingsRow} style={{ marginTop: 22 }}>
+      <input
+        className={styles.goalSlider}
+        type="range"
+        min={MIN_GOAL}
+        max={MAX_GOAL}
+        step={1}
+        value={goal}
+        disabled={pending}
+        aria-label="Régler l'objectif quotidien"
+        onChange={(event) => onChangeGoal(Number(event.target.value))}
+      />
+
+      <div className={styles.settingsRow} style={{ marginTop: 18 }}>
+        <label className={styles.checkboxRow} htmlFor="auto-backup">
+          <input
+            id="auto-backup"
+            type="checkbox"
+            checked={autoBackup}
+            onChange={(event) => onToggleAutoBackup(event.target.checked)}
+          />
+          <span>Sauvegarde automatique hebdomadaire</span>
+        </label>
+      </div>
+
+      <div className={styles.settingsRow} style={{ marginTop: 14 }}>
         <span className={styles.hint}>
           <ShieldIcon /> Vos données ne quittent jamais cet appareil. Pensez à exporter une
           sauvegarde avant de vider le navigateur ou de changer de téléphone.

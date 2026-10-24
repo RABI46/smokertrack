@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
+  AUTO_BACKUP_DAYS,
   BACKUP_REMINDER_DAYS,
   applyIncrement,
   parseBackup,
+  shouldAutoBackup,
   shouldRemindBackup,
   toBackup,
   type PersistedState,
@@ -149,25 +151,72 @@ describe("shouldRemindBackup", () => {
   };
 
   it("ne rappelle rien sans données", () => {
-    expect(shouldRemindBackup({ goal: 10, days: {} }, { lastExportAt: null }, now)).toBe(false);
+    expect(shouldRemindBackup({ goal: 10, days: {} }, { lastExportAt: null, autoBackup: true }, now)).toBe(false);
   });
 
   it("rappelle quand aucun export n'a jamais eu lieu", () => {
-    expect(shouldRemindBackup(withData, { lastExportAt: null }, now)).toBe(true);
+    expect(shouldRemindBackup(withData, { lastExportAt: null, autoBackup: true }, now)).toBe(true);
   });
 
   it("ne rappelle pas juste après un export", () => {
     expect(
-      shouldRemindBackup(withData, { lastExportAt: now.toISOString() }, now),
+      shouldRemindBackup(withData, { lastExportAt: now.toISOString(), autoBackup: true }, now),
     ).toBe(false);
   });
 
   it("rappelle après le délai configuré", () => {
     const old = new Date(now.getTime() - (BACKUP_REMINDER_DAYS + 1) * 86_400_000);
-    expect(shouldRemindBackup(withData, { lastExportAt: old.toISOString() }, now)).toBe(true);
+    expect(shouldRemindBackup(withData, { lastExportAt: old.toISOString(), autoBackup: true }, now)).toBe(true);
   });
 
   it("rappelle si la date d'export est corrompue", () => {
-    expect(shouldRemindBackup(withData, { lastExportAt: "pas-une-date" }, now)).toBe(true);
+    expect(shouldRemindBackup(withData, { lastExportAt: "pas-une-date", autoBackup: true }, now)).toBe(true);
+  });
+});
+
+describe("shouldAutoBackup", () => {
+  const withData: PersistedState = {
+    goal: 10,
+    days: { "2026-05-10": { count: 3, lastSmokedAt: null } },
+  };
+  const meta = (overrides: Partial<Parameters<typeof shouldAutoBackup>[1]> = {}) => ({
+    lastExportAt: null,
+    autoBackup: true,
+    ...overrides,
+  });
+
+  it("ne sauvegarde rien sans données", () => {
+    expect(shouldAutoBackup({ goal: 10, days: {} }, meta(), now)).toBe(false);
+  });
+
+  it("respecte la désactivation du réglage", () => {
+    expect(shouldAutoBackup(withData, meta({ autoBackup: false }), now)).toBe(false);
+  });
+
+  it("déclenche un export quand aucun n'a eu lieu", () => {
+    expect(shouldAutoBackup(withData, meta(), now)).toBe(true);
+  });
+
+  it("ne déclenche rien juste après un export manuel", () => {
+    expect(shouldAutoBackup(withData, meta({ lastExportAt: now.toISOString() }), now)).toBe(false);
+  });
+
+  it("ne déclenche rien juste après un export automatique", () => {
+    expect(
+      shouldAutoBackup(withData, meta({ lastAutoExportAt: now.toISOString() }), now),
+    ).toBe(false);
+  });
+
+  it("déclenche après la période configurée", () => {
+    const old = new Date(now.getTime() - (AUTO_BACKUP_DAYS + 1) * 86_400_000);
+    expect(shouldAutoBackup(withData, meta({ lastExportAt: old.toISOString() }), now)).toBe(true);
+  });
+
+  it("utilise la date d'export la plus récente", () => {
+    const recent = new Date(now.getTime() - 86_400_000).toISOString();
+    const old = new Date(now.getTime() - 30 * 86_400_000).toISOString();
+    expect(
+      shouldAutoBackup(withData, meta({ lastExportAt: old, lastAutoExportAt: recent }), now),
+    ).toBe(false);
   });
 });

@@ -42,6 +42,11 @@ export default function InstallPrompt() {
     };
   }, []);
 
+  // Dans l'APK, l'application est déjà installée : aucun bouton à afficher.
+  if (typeof document !== "undefined" && document.documentElement.dataset.native === "true") {
+    return null;
+  }
+
   if (!promptEvent || installed) return null;
 
   return (

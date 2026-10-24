@@ -194,7 +194,7 @@ d'événements rend la synchro plus propre, avec des `id` stables et une fusion 
 | # | Action | Pourquoi | Effort |
 |---|---|---|---|
 | 4.1 | **Next 15/16 + React 19** | 2 avis `npm audit` (non exploitables ici, mais ils reviendront) ; Next 14 est en fin de vie | ½ j |
-| 4.2 | **Node 24 en CI** | avertissement de dépréciation à chaque run | 5 min |
+| 4.2 | ~~**Node 24 en CI**~~ → **fait** : Node 22 imposé (Capacitor 8 exige ≥ 22) | avertissement de dépréciation à chaque run | 5 min |
 | 4.3 | **Tests e2e Playwright** | les tests jsdom ne couvrent ni le service worker, ni le hors-ligne réel, ni l'installation PWA | 1 j |
 | 4.4 | **Test de non-régression sur `out/`** | vérifier le préfixe `basePath` et la présence de `sw.js`, manifeste, icônes dans le HTML généré (classe de bug déjà rencontrée) | 2 h |
 | 4.5 | **CodeQL + `npm audit` bloquant** | Dependabot ouvre déjà des PR, mais rien ne bloque une faille | 1 h |

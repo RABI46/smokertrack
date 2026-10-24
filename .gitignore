@@ -34,3 +34,17 @@ Thumbs.db
 
 # Divers
 *-debug.log
+
+# Android / Capacitor
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/app/release/
+*.apk
+*.aab
+*.keystore
+*.jks
+android/.cxx/
+android/capacitor-cordova-android-plugins/build/

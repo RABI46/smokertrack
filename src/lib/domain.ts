@@ -1,4 +1,5 @@
 /** Règles métier pures, sans dépendance à React ni à Firebase (testables). */
+import { dayKey } from "./date";
 import type { DayEntry } from "./types";
 
 export const DEFAULT_GOAL = 10;
@@ -167,4 +168,81 @@ export function takeLast(series: SeriesPoint[], count: number): SeriesPoint[] {
 export function takePrevious(series: SeriesPoint[], count: number, offset: number): SeriesPoint[] {
   const end = Math.max(0, series.length - offset);
   return series.slice(Math.max(0, end - count), end);
+}
+
+/* ------------------------------------------------------------------------- *
+ * Compte à rebours « prochaine cigarette »
+ *
+ * Aucun réglage supplémentaire : l'écart cible entre deux cigarettes est
+ * déduit de l'objectif quotidien, réparti sur une journée d'éveil de 16 h.
+ * Un objectif de 10 donne ainsi une cigarette toutes les 96 minutes.
+ * ------------------------------------------------------------------------- */
+
+/** Durée d'éveil retenue pour répartir l'objectif (en minutes). */
+export const WAKE_MINUTES = 16 * 60;
+
+/** Écart cible entre deux cigarettes, en millisecondes, déduit de l'objectif. */
+export function spacingMs(goal: number): number {
+  const safeGoal = clampGoal(goal);
+  const minutes = Math.max(1, Math.round(WAKE_MINUTES / safeGoal));
+  return minutes * 60_000;
+}
+
+export interface NextCigarette {
+  /** Instant où la cigarette suivante est « due ». */
+  dueAt: Date;
+  /** Millisecondes restantes ; négatif quand le créneau est dépassé. */
+  remainingMs: number;
+  /** Vrai dès que le créneau est dépassé (on affiche alors le retard). */
+  overdue: boolean;
+  /** Écart cible effectivement appliqué. */
+  spacingMs: number;
+}
+
+/**
+ * Calcule le prochain créneau à partir de la dernière cigarette.
+ * `null` si aucun horodatage exploitable : sans point de départ, il n'y a rien
+ * à décompter.
+ */
+export function nextCigarette(
+  lastSmokedAt: Date | null,
+  goal: number,
+  now: Date = new Date(),
+): NextCigarette | null {
+  if (!lastSmokedAt) return null;
+  const start = lastSmokedAt.getTime();
+  if (!Number.isFinite(start)) return null;
+  if (!Number.isFinite(now.getTime())) return null;
+
+  const spacing = spacingMs(goal);
+  const dueAt = new Date(start + spacing);
+  const remainingMs = dueAt.getTime() - now.getTime();
+  return { dueAt, remainingMs, overdue: remainingMs <= 0, spacingMs: spacing };
+}
+
+/**
+ * Comme {@link nextCigarette}, mais uniquement pour une cigarette fumée
+ * aujourd'hui : au réveil, la dernière cigarette de la veille ne doit pas
+ * produire un retard de dix heures.
+ */
+export function nextCigaretteForDay(
+  lastSmokedAt: Date | null,
+  goal: number,
+  todayKey: string,
+  now: Date = new Date(),
+): NextCigarette | null {
+  if (!lastSmokedAt || dayKey(lastSmokedAt) !== todayKey) return null;
+  return nextCigarette(lastSmokedAt, goal, now);
+}
+
+/** Durée lisible : « 45 s », « 12 min 30 s », « 1 h 36 min ». */
+export function formatDuration(ms: number): string {
+  const totalSeconds = Math.max(0, Math.floor(ms / 1000));
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  if (hours > 0) return `${hours} h ${String(minutes).padStart(2, "0")} min`;
+  if (minutes > 0) return `${minutes} min ${String(seconds).padStart(2, "0")} s`;
+  return `${seconds} s`;
 }

@@ -7,6 +7,10 @@ import {
   clampGoal,
   computeStats,
   encouragement,
+  formatDuration,
+  nextCigarette,
+  nextCigaretteForDay,
+  spacingMs,
   sum,
   takeLast,
   takePrevious,
@@ -208,5 +212,83 @@ describe("countTracked", () => {
 describe("sum ignore les jours non suivis", () => {
   it("additionne seulement les jours suivis", () => {
     expect(sum(mixedSeries([5, null, 3]))).toBe(8);
+  });
+});
+
+describe("spacingMs", () => {
+  it("répartit l'objectif sur 16 h d'éveil", () => {
+    // 16 h = 960 minutes ; objectif 10 → une cigarette toutes les 96 min.
+    expect(spacingMs(10)).toBe(96 * 60_000);
+    expect(spacingMs(20)).toBe(48 * 60_000);
+    expect(spacingMs(1)).toBe(16 * 60 * 60_000);
+  });
+
+  it("borne les objectifs aberrants au lieu de produire NaN", () => {
+    expect(spacingMs(0)).toBe(16 * 60 * 60_000); // ramené à l'objectif minimum
+    expect(spacingMs(Number.NaN)).toBe(96 * 60_000); // objectif par défaut
+    expect(spacingMs(10_000)).toBeGreaterThan(0);
+  });
+});
+
+describe("nextCigarette", () => {
+  const last = new Date("2026-10-24T14:00:00.000Z");
+
+  it("renvoie null sans point de départ", () => {
+    expect(nextCigarette(null, 10, last)).toBeNull();
+    expect(nextCigarette(new Date(Number.NaN), 10, last)).toBeNull();
+  });
+
+  it("compte à rebours jusqu'à l'écart cible", () => {
+    const now = new Date(last.getTime() + 30 * 60_000);
+    const next = nextCigarette(last, 10, now);
+
+    expect(next).not.toBeNull();
+    expect(next?.remainingMs).toBe(66 * 60_000); // 96 - 30
+    expect(next?.overdue).toBe(false);
+    expect(next?.dueAt.toISOString()).toBe("2026-10-24T15:36:00.000Z");
+  });
+
+  it("signale le retard une fois le créneau dépassé", () => {
+    const now = new Date(last.getTime() + 100 * 60_000);
+    const next = nextCigarette(last, 10, now);
+
+    expect(next?.overdue).toBe(true);
+    expect(next?.remainingMs).toBe(-4 * 60_000);
+  });
+
+  it("atteint zéro pile à l'échéance", () => {
+    const next = nextCigarette(last, 10, new Date("2026-10-24T15:36:00.000Z"));
+    expect(next?.remainingMs).toBe(0);
+    expect(next?.overdue).toBe(true);
+  });
+});
+
+describe("nextCigaretteForDay", () => {
+  it("ignore la cigarette de la veille", () => {
+    const last = new Date("2026-10-23T22:10:00.000Z");
+    const now = new Date("2026-10-24T08:00:00.000Z");
+
+    // Sans cette garde, le widget afficherait « en retard de 10 h » au réveil.
+    expect(nextCigaretteForDay(last, 10, "2026-10-24", now)).toBeNull();
+    expect(nextCigaretteForDay(last, 10, "2026-10-23", now)).not.toBeNull();
+  });
+
+  it("accepte une cigarette du jour", () => {
+    const last = new Date("2026-10-24T09:00:00.000Z");
+    const now = new Date("2026-10-24T09:30:00.000Z");
+
+    expect(nextCigaretteForDay(last, 10, "2026-10-24", now)?.overdue).toBe(false);
+  });
+});
+
+describe("formatDuration", () => {
+  it("reste lisible à toutes les échelles", () => {
+    expect(formatDuration(45_000)).toBe("45 s");
+    expect(formatDuration(30 * 60_000 + 5_000)).toBe("30 min 05 s");
+    expect(formatDuration(96 * 60_000)).toBe("1 h 36 min");
+  });
+
+  it("ne produit jamais de valeur négative", () => {
+    expect(formatDuration(-5_000)).toBe("0 s");
   });
 });

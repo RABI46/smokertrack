@@ -127,6 +127,51 @@ describe("TrackerApp", () => {
     );
   });
 
+  it("affiche l'heure de la dernière cigarette et le compte à rebours", async () => {
+    const lastSmokedAt = new Date(Date.now() - 30 * 60_000);
+    window.localStorage.setItem(
+      "smokertrack.v1",
+      JSON.stringify({
+        goal: 10,
+        days: { [dayKey()]: { count: 2, lastSmokedAt: lastSmokedAt.toISOString() } },
+      }),
+    );
+
+    render(<TrackerApp />);
+
+    // Objectif 10 → 96 min entre deux cigarettes, 30 min déjà écoulées.
+    // La seconde en cours est tronquée : 1 h 05 ou 1 h 06 selon l'instant du rendu.
+    await waitFor(() => expect(screen.getByText(/^dans 1 h 0[56] min$/)).toBeTruthy());
+    expect(screen.getByText("Prochaine cigarette")).toBeTruthy();
+    expect(screen.getByText(/^Dernière : /)).toBeTruthy();
+  });
+
+  it("affiche le retard quand le créneau est dépassé", async () => {
+    const lastSmokedAt = new Date(Date.now() - 200 * 60_000);
+    window.localStorage.setItem(
+      "smokertrack.v1",
+      JSON.stringify({
+        goal: 10,
+        days: { [dayKey()]: { count: 2, lastSmokedAt: lastSmokedAt.toISOString() } },
+      }),
+    );
+
+    render(<TrackerApp />);
+
+    await waitFor(() =>
+      expect(screen.getByText(/^en retard de 1 h 4[34] min$/)).toBeTruthy(),
+    );
+  });
+
+  it("n'affiche pas de compte à rebours sans cigarette du jour", async () => {
+    render(<TrackerApp />);
+
+    await waitFor(() => expect(screen.getByText("Prochaine cigarette")).toBeTruthy());
+    expect(
+      screen.getByText("le compte à rebours démarre à la première cigarette du jour"),
+    ).toBeTruthy();
+  });
+
   it("restaure une sauvegarde importée", async () => {
     render(<TrackerApp />);
     await screen.findByText("Sur cet appareil");

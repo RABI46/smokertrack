@@ -40,33 +40,81 @@ describe("widgetBridge", () => {
 
   it("est inactif dans un navigateur", async () => {
     expect(isNativeApp()).toBe(false);
-    await expect(consumeWidgetAdditions()).resolves.toBe(0);
+    await expect(consumeWidgetAdditions()).resolves.toEqual({
+      pending: 0,
+      lastSmokedAt: null,
+    });
     await expect(
-      syncWidgetState({ todayKey: "2026-10-24", count: 3, goal: 10 }),
+      syncWidgetState({ todayKey: "2026-10-24", count: 3, goal: 10, lastSmokedAt: null }),
     ).resolves.toBeUndefined();
   });
 
   it("pousse un résumé normalisé vers le widget", async () => {
     const bridge = installNativeBridge();
 
-    await syncWidgetState({ todayKey: "2026-10-24", count: 4.6, goal: 0 });
+    await syncWidgetState({ todayKey: "2026-10-24", count: 4.6, goal: 0, lastSmokedAt: null });
 
     expect(bridge.sync).toHaveBeenCalledWith({
       todayKey: "2026-10-24",
       count: 5,
       goal: 1,
+      lastSmokedAt: 0,
     });
+  });
+
+  it("transmet l'heure de la dernière cigarette en millisecondes", async () => {
+    const bridge = installNativeBridge();
+    const lastSmokedAt = new Date("2026-10-24T14:32:00.000Z");
+
+    await syncWidgetState({ todayKey: "2026-10-24", count: 2, goal: 10, lastSmokedAt });
+
+    // Le natif n'a pas de `null` : 0 signifie « aucune cigarette aujourd'hui ».
+    expect(bridge.sync).toHaveBeenCalledWith(
+      expect.objectContaining({ lastSmokedAt: lastSmokedAt.getTime() }),
+    );
+  });
+
+  it("ramène une date invalide à « aucune cigarette »", async () => {
+    const bridge = installNativeBridge();
+
+    await syncWidgetState({
+      todayKey: "2026-10-24",
+      count: 0,
+      goal: 10,
+      lastSmokedAt: new Date(Number.NaN),
+    });
+
+    expect(bridge.sync).toHaveBeenCalledWith(
+      expect.objectContaining({ lastSmokedAt: 0 }),
+    );
   });
 
   it("lit et normalise la file d'attente du widget", async () => {
     installNativeBridge(3);
-    await expect(consumeWidgetAdditions()).resolves.toBe(3);
+    await expect(consumeWidgetAdditions()).resolves.toEqual({
+      pending: 3,
+      lastSmokedAt: null,
+    });
+  });
+
+  it("remonte l'heure réelle des cigarettes ajoutées depuis le widget", async () => {
+    const bridge = installNativeBridge();
+    const at = new Date("2026-10-24T14:32:00.000Z");
+    bridge.consumePending.mockResolvedValueOnce({ pending: 2, lastSmokedAt: at.getTime() });
+
+    const additions = await consumeWidgetAdditions();
+
+    expect(additions.pending).toBe(2);
+    expect(additions.lastSmokedAt?.getTime()).toBe(at.getTime());
   });
 
   it("ignore une valeur aberrante renvoyée par le natif", async () => {
     const bridge = installNativeBridge();
     bridge.consumePending.mockResolvedValueOnce({ pending: Number.NaN } as never);
-    await expect(consumeWidgetAdditions()).resolves.toBe(0);
+    await expect(consumeWidgetAdditions()).resolves.toEqual({
+      pending: 0,
+      lastSmokedAt: null,
+    });
   });
 
   it("ne casse pas si le plugin lève une erreur", async () => {
@@ -75,9 +123,12 @@ describe("widgetBridge", () => {
     bridge.consumePending.mockRejectedValueOnce(new Error("boom"));
 
     await expect(
-      syncWidgetState({ todayKey: "2026-10-24", count: 1, goal: 10 }),
+      syncWidgetState({ todayKey: "2026-10-24", count: 1, goal: 10, lastSmokedAt: null }),
     ).resolves.toBeUndefined();
-    await expect(consumeWidgetAdditions()).resolves.toBe(0);
+    await expect(consumeWidgetAdditions()).resolves.toEqual({
+      pending: 0,
+      lastSmokedAt: null,
+    });
   });
 });
 
@@ -122,6 +173,10 @@ describe("application native", () => {
         expect.objectContaining({ todayKey: dayKey(), count: 1 }),
       ),
     );
+
+    // L'heure de la dernière cigarette accompagne le compteur.
+    const lastCall = bridge.sync.mock.calls.at(-1)?.[0] as { lastSmokedAt: number };
+    expect(lastCall.lastSmokedAt).toBeGreaterThan(0);
   });
 
   it("n'applique la file d'attente qu'une seule fois", async () => {

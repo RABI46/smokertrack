@@ -1,6 +1,6 @@
 {
   "name": "smokertrack",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "private": true,
   "description": "Suivi personnel de consommation de cigarettes — PWA local-first + application Android (APK)",
   "license": "MIT",

@@ -47,6 +47,12 @@ export interface DailyLogStore {
     delta: number,
     currentCount: number,
     isToday?: boolean,
+    /**
+     * Instant réel de la cigarette. Utile quand l'ajout vient du widget : il a
+     * eu lieu bien avant l'ouverture de l'application, et l'heure affichée doit
+     * rester la sienne.
+     */
+    at?: Date,
   ): Promise<void>;
   setGoal(goal: number): Promise<void>;
   /** Suppression totale des données personnelles. */

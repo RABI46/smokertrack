@@ -74,7 +74,7 @@ Pour un dépôt public, gardez le keystore **hors du dépôt** (il est ignoré p
 | Thème | sombre, splash « flamme », barre d'état `#0b1120` |
 | Données | `localStorage` du WebView — même modèle local-first que la PWA |
 | Taille APK | ~4,2 Mo (l'export web pèse moins de 1 Mo) |
-| Widget | `AppWidgetProvider` natif : compteur + bouton « +1 » |
+| Widget | `AppWidgetProvider` natif : compteur, dernière cigarette, compte à rebours, bouton « +1 » |
 
 ### Ce qui a été adapté pour le natif
 
@@ -99,11 +99,33 @@ L'APK embarque un **vrai widget Android** (`AppWidgetProvider`), pas une simple 
 | Élément | Comportement |
 |---|---|
 | Affichage | Nombre de cigarettes du jour + objectif |
+| Heure de la dernière cigarette | `Dernière : 14:32`, ou « aucune cigarette aujourd'hui » |
+| Compte à rebours | Vers la prochaine cigarette, avec passage en « en retard de … » |
 | Bouton **+ Une cigarette** | Enregistre une cigarette **sans ouvrir** l'application |
 | Toucher le compteur | Ouvre l'application |
 | Minuit | Le widget repart de zéro même si l'app n'a pas été ouverte |
 | Taille | 2×2 cellules par défaut, redimensionnable (2×1 minimum) |
 | Thème | Fond bleu nuit, accents orange, cohérent avec l'app |
+
+### D'où vient le compte à rebours
+
+Aucun réglage supplémentaire : l'écart cible entre deux cigarettes se déduit de
+l'objectif quotidien, réparti sur 16 h d'éveil.
+
+| Objectif | Écart entre deux cigarettes |
+|---|---|
+| 5 / jour | 3 h 12 min |
+| 10 / jour | 1 h 36 min |
+| 20 / jour | 48 min |
+
+Le décompte est un `Chronometer` : il avance tout seul, sans réveiller
+l'application. Deux alarmes sont posées par le provider — l'échéance (pour
+basculer en « en retard de … ») et minuit (pour repartir de zéro) — via
+`setAndAllowWhileIdle`, qui ne demande aucune permission spéciale.
+
+La règle est écrite deux fois, volontairement : `spacingMs()` en TypeScript et
+`spacingMs()` en Java. Elles doivent rester identiques, sinon le widget et
+l'application afficheraient deux horaires différents.
 
 ### Comment les données circulent
 
@@ -115,15 +137,16 @@ WebView (source de vérité)            Widget natif
   localStorage["smokertrack.v1"]
             │  après chaque modification
             ▼
-  WidgetBridge.sync({todayKey,count,goal})
+  WidgetBridge.sync({todayKey,count,goal,lastSmokedAt})
             │                        ┌──────────────────────────┐
-            └──► SharedPreferences ──►  lecture + affichage     │
+            └──► SharedPreferences ──►  compteur, heure, décompte│
                  smokertrack_widget    │  bouton "+1"             │
                                        │   → pending_add++        │
+                                       │   → last_smoked_at = now │
                                        └───────────┬──────────────┘
             ┌──────────────────────────────────────┘
             ▼
-  WidgetBridge.consumePending()  →  appliqué au localStorage
+  WidgetBridge.consumePending()  →  {pending, lastSmokedAt} appliqués au localStorage
   (au démarrage et au retour au premier plan, une seule fois)
 ```
 

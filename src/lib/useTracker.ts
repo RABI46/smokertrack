@@ -35,6 +35,8 @@ export interface TrackerApi {
   series: SeriesPoint[];
   stats: DailyStats;
   lastSmokedAt: Date | null;
+  /** Dernière cigarette fumée aujourd'hui uniquement (base du compte à rebours). */
+  lastSmokedToday: Date | null;
   pending: boolean;
   needsBackupExport: boolean;
   autoBackup: boolean;
@@ -120,10 +122,15 @@ export function useTracker(): TrackerApi {
     widgetMergeDone.current = true;
 
     const merge = async () => {
-      const pendingFromWidget = await consumeWidgetAdditions();
-      if (pendingFromWidget > 0) {
-        await store.increment(todayKey, pendingFromWidget, 0, true);
-      }
+      const { pending: pendingFromWidget, lastSmokedAt: widgetAt } =
+        await consumeWidgetAdditions();
+      if (pendingFromWidget <= 0) return;
+
+      // On conserve l'heure réelle du widget (la cigarette a pu être fumée
+      // plusieurs heures avant l'ouverture de l'application), sauf si elle
+      // appartient déjà à la veille.
+      const at = widgetAt && dayKey(widgetAt) === todayKey ? widgetAt : undefined;
+      await store.increment(todayKey, pendingFromWidget, 0, true, at);
     };
 
     void merge();
@@ -135,12 +142,6 @@ export function useTracker(): TrackerApi {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [store, todayKey]);
 
-  // Le widget affiche le compteur du jour : on le tient à jour à chaque changement.
-  useEffect(() => {
-    if (!snapshot) return;
-    void syncWidgetState({ todayKey, count: stats.today, goal: stats.goal });
-  }, [snapshot, todayKey, stats.today, stats.goal]);
-
   const lastSmokedAt = useMemo(() => {
     const dates = (snapshot?.entries ?? [])
       .map((entry) => entry.lastSmokedAt)
@@ -148,6 +149,25 @@ export function useTracker(): TrackerApi {
     if (dates.length === 0) return null;
     return dates.reduce((latest, value) => (value > latest ? value : latest));
   }, [snapshot]);
+
+  // Horodatage de la dernière cigarette **du jour** : seul point de départ
+  // valable pour le compte à rebours (cf. `nextCigaretteForDay`).
+  const lastSmokedToday = useMemo(() => {
+    const today = (snapshot?.entries ?? []).find((entry) => entry.date === todayKey);
+    return today?.lastSmokedAt ?? null;
+  }, [snapshot, todayKey]);
+
+  // Le widget affiche le compteur, l'heure de la dernière cigarette et le
+  // compte à rebours : on le tient à jour à chaque changement.
+  useEffect(() => {
+    if (!snapshot) return;
+    void syncWidgetState({
+      todayKey,
+      count: stats.today,
+      goal: stats.goal,
+      lastSmokedAt: lastSmokedToday,
+    });
+  }, [snapshot, todayKey, stats.today, stats.goal, lastSmokedToday]);
 
   const todayCount = stats.today;
 
@@ -223,6 +243,7 @@ export function useTracker(): TrackerApi {
     series,
     stats,
     lastSmokedAt,
+    lastSmokedToday,
     pending,
     needsBackupExport,
     autoBackup,

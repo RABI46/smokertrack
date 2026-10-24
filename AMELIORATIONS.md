@@ -215,6 +215,7 @@ d'événements rend la synchro plus propre, avec des `id` stables et une fusion 
 | Bruit `Not implemented: navigation` dans les tests | ✅ neutralisé (`HTMLAnchorElement.prototype.click`) |
 | Branche distante parasite `manifest.json` | ✅ supprimée |
 | Widget natif Android | ✅ implémenté (voir docs/ANDROID.md) |
+| Heure de la dernière cigarette + compte à rebours | ✅ **v1.5** : dans l'app et sur le widget, écart déduit de l'objectif (16 h / objectif) |
 
 ## 5. Ce que je ne recommande pas (et pourquoi)
 

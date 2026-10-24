@@ -9,8 +9,11 @@
     <string name="widget_label_today">Aujourd\'hui</string>
     <string name="widget_goal_format">objectif %1$d</string>
     <string name="widget_goal_default">objectif 10</string>
+    <string name="widget_label_next">Prochaine</string>
+    <string name="widget_label_overdue">En retard de</string>
+    <string name="widget_last_format">Dernière : %1$s</string>
+    <string name="widget_no_smoke_today">Aucune cigarette aujourd\'hui</string>
     <string name="widget_add">+ Une cigarette</string>
-    <string name="widget_hint_today">Ouvrez l\'application pour vos tendances</string>
     <string name="widget_hint_stale">Ouvrez l\'application pour actualiser</string>
-    <string name="widget_description">Compteur du jour et ajout rapide d\'une cigarette</string>
+    <string name="widget_description">Compteur du jour, dernière cigarette et compte à rebours de la prochaine, avec ajout rapide</string>
 </resources>

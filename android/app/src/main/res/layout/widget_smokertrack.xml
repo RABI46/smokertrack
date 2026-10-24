@@ -2,15 +2,18 @@
 <!--
   Mise en page du widget d'écran d'accueil.
   RemoteViews n'accepte qu'un sous-ensemble de vues : LinearLayout, TextView,
-  ImageView… On utilise des TextView stylés plutôt que des Button pour rester
-  compatible avec tous les lanceurs.
+  Chronometer, ImageView… On utilise des TextView stylés plutôt que des Button
+  pour rester compatible avec tous les lanceurs.
+
+  Le compte à rebours est un Chronometer : il avance tout seul, sans réveil de
+  l'application. `android:format` doit obligatoirement contenir « %s ».
 -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:background="@drawable/widget_background"
-    android:padding="14dp">
+    android:padding="12dp">
 
     <TextView
         android:id="@+id/widget_label"
@@ -18,7 +21,7 @@
         android:layout_height="wrap_content"
         android:text="@string/widget_label_today"
         android:textColor="#9AA8C2"
-        android:textSize="11sp"
+        android:textSize="10sp"
         android:letterSpacing="0.08"
         android:textAllCaps="true" />
 
@@ -26,8 +29,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:baselineAligned="true"
-        android:layout_marginTop="2dp">
+        android:baselineAligned="true">
 
         <TextView
             android:id="@+id/widget_count"
@@ -35,7 +37,7 @@
             android:layout_height="wrap_content"
             android:text="0"
             android:textColor="#F4F6FB"
-            android:textSize="34sp"
+            android:textSize="30sp"
             android:textStyle="bold"
             android:includeFontPadding="false" />
 
@@ -49,14 +51,42 @@
             android:textSize="11sp" />
     </LinearLayout>
 
+    <!-- Prochaine cigarette : libellé + décompte vivant. -->
+    <LinearLayout
+        android:id="@+id/widget_next_row"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="2dp">
+
+        <TextView
+            android:id="@+id/widget_next_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/widget_label_next"
+            android:textColor="#9AA8C2"
+            android:textSize="10sp" />
+
+        <Chronometer
+            android:id="@+id/widget_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:format="%s"
+            android:textColor="#FB923C"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
     <TextView
-        android:id="@+id/widget_hint"
+        android:id="@+id/widget_last"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
         android:maxLines="2"
         android:ellipsize="end"
-        android:text="@string/widget_hint_today"
+        android:text="@string/widget_no_smoke_today"
         android:textColor="#9AA8C2"
         android:textSize="10sp"
         android:paddingTop="2dp" />
@@ -64,7 +94,8 @@
     <TextView
         android:id="@+id/widget_add"
         android:layout_width="match_parent"
-        android:layout_height="34dp"
+        android:layout_height="32dp"
+        android:layout_marginTop="4dp"
         android:gravity="center"
         android:background="@drawable/widget_button_background"
         android:text="@string/widget_add"

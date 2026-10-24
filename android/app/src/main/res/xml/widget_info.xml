@@ -2,12 +2,13 @@
 <!--
   Déclaration du widget : taille minimale 2×1 cellules, redimensionnable.
   `updatePeriodMillis` est plafonné à 30 minutes par Android ; le widget est de
-  toute façon rafraîchi immédiatement à chaque +1 et à chaque synchronisation
-  avec l'application.
+  toute façon rafraîchi immédiatement à chaque +1, à chaque synchronisation avec
+  l'application, à l'échéance du compte à rebours et à minuit (alarmes posées par
+  le provider). Le décompte lui-même avance sans réveil, via un Chronometer.
 -->
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
     android:minWidth="140dp"
-    android:minHeight="110dp"
+    android:minHeight="140dp"
     android:targetCellWidth="2"
     android:targetCellHeight="2"
     android:updatePeriodMillis="1800000"

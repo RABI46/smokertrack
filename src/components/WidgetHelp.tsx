@@ -8,7 +8,8 @@ import styles from "./tracker.module.css";
  * Aide « widget & accès rapide ».
  *
  * Depuis la version 1.4, l'APK Android embarque un **vrai widget natif**
- * (AppWidget) : compteur du jour + bouton « +1 ». Dans un navigateur, ce widget
+ * (AppWidget) : compteur du jour, heure de la dernière cigarette, compte à
+ * rebours de la prochaine et bouton « +1 ». Dans un navigateur, ce widget
  * n'existe pas — on explique alors les équivalents web, sans promesse trompeuse.
  */
 export default function WidgetHelp() {
@@ -26,8 +27,9 @@ export default function WidgetHelp() {
       {native ? (
         <>
           <p className={styles.sectionHint}>
-            L&apos;application Android inclut un widget natif : compteur du jour et ajout d&apos;une
-            cigarette sans ouvrir l&apos;application.
+            L&apos;application Android inclut un widget natif : compteur du jour, heure de la
+            dernière cigarette, compte à rebours vers la prochaine et ajout d&apos;une cigarette
+            sans ouvrir l&apos;application.
           </p>
           <ol className={styles.helpList}>
             <li>Revenir à l&apos;écran d&apos;accueil, appuyer longuement sur une zone vide.</li>
@@ -37,8 +39,12 @@ export default function WidgetHelp() {
               cigarette</strong> enregistre une cigarette immédiatement.
             </li>
             <li>
-              Redimensionnable (2×1 minimum). Les ajouts faits depuis le widget sont fusionnés
-              dans les données à la prochaine ouverture de l&apos;application.
+              Redimensionnable (2×1 minimum). Le décompte se met à jour tout seul ; le widget
+              repart de zéro à minuit, même si l&apos;application n&apos;est pas ouverte.
+            </li>
+            <li>
+              Les ajouts faits depuis le widget sont fusionnés dans les données à la prochaine
+              ouverture, en conservant leur heure réelle.
             </li>
           </ol>
         </>

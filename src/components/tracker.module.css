@@ -678,3 +678,43 @@
     margin-left: 0;
   }
 }
+
+/* Compte à rebours « prochaine cigarette » */
+.nextRow {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--bg-soft);
+  border: 1px solid var(--border);
+}
+
+.nextLabel {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.nextValue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-strong);
+  font-variant-numeric: tabular-nums;
+}
+
+.nextOverdue {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--danger);
+  font-variant-numeric: tabular-nums;
+}
+
+.nextMeta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-inline-start: auto;
+}

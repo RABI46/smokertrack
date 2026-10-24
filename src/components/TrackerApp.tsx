@@ -103,6 +103,7 @@ export default function TrackerApp() {
         todayKey={tracker.todayKey}
         timeZone={tracker.timeZone}
         lastSmokedAt={tracker.lastSmokedAt}
+        lastSmokedToday={tracker.lastSmokedToday}
         pending={tracker.pending}
         onAdd={() => void tracker.add()}
         onUndo={() => void tracker.undo()}
@@ -137,7 +138,7 @@ export default function TrackerApp() {
         <span>
           Données locales, sans compte — <Link href="/confidentialite">confidentialité</Link>
         </span>
-        <span>SmokeTracker v1.4.0</span>
+        <span>SmokeTracker v1.5.0</span>
       </footer>
     </div>
   );

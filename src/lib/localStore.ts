@@ -317,9 +317,10 @@ export function createLocalStore(): DailyLogStore {
       };
     },
 
-    async increment(dayKey, delta, currentCount, isToday = true): Promise<void> {
+    async increment(dayKey, delta, currentCount, isToday = true, at): Promise<void> {
       if (delta < 0 && currentCount <= 0) return;
-      writeState(applyIncrement(readState(), dayKey, delta, new Date(), isToday));
+      const when = at && Number.isFinite(at.getTime()) ? at : new Date();
+      writeState(applyIncrement(readState(), dayKey, delta, when, isToday));
     },
 
     async setGoal(goal): Promise<void> {

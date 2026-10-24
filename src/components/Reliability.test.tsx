@@ -131,12 +131,14 @@ describe("sauvegarde automatique", () => {
       addEventListener: () => undefined,
       removeEventListener: () => undefined,
     }));
-    // jsdom n'implémente pas l'API Blob URL.
+    // jsdom n'implémente ni les Blob URL ni la navigation déclenchée par un
+    // lien <a download> : on neutralise les deux pour garder des logs lisibles.
     vi.stubGlobal("URL", {
       ...URL,
       createObjectURL: vi.fn(() => "blob:smokertrack"),
       revokeObjectURL: vi.fn(),
     });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
   });
 
   afterEach(() => {

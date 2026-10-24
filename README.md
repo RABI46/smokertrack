@@ -37,14 +37,18 @@ Voir [docs/ANDROID.md](docs/ANDROID.md).
 - **Mise à jour PWA contrôlée** : bandeau « Nouvelle version disponible » et rechargement au
   clic (`SKIP_WAITING`), au lieu d'un service worker qui prend la main sans prévenir.
 - **Stockage persistant** : demande `navigator.storage.persist()` pour limiter les purges.
-- **Badge sur l'icône** : nombre de cigarettes du jour via la Badging API (Android, iOS 16.4+).
+- **Widget natif Android** (APK) : compteur du jour + ajout en un tap, fusionné au lancement.
+- **Raccourcis d'écran d'accueil** (PWA) : `?action=add`.
 - **Ajout en un tap depuis l'écran d'accueil** : raccourci `?action=add` (voir ci-dessous).
 
 ## Widget & accès rapide depuis l'écran d'accueil
 
-**À savoir d'abord :** une PWA ne peut pas déclarer un **widget natif** (App Widget Android ou
-WidgetKit iOS). Ces widgets exigent du code natif et une publication sur les stores. Trois
-équivalents réellement fonctionnels sont fournis :
+**Dans l'application Android (APK)** : un **vrai widget natif** est disponible — compteur du
+jour, objectif, et bouton « + Une cigarette » qui enregistre sans ouvrir l'application. Voir
+[docs/ANDROID.md](docs/ANDROID.md#widget-natif-décran-daccueil).
+
+**Dans un navigateur (PWA)** : un widget natif est impossible (App Widget Android ou WidgetKit
+iOS exigent du code natif). Trois équivalents fonctionnels sont fournis :
 
 | Plateforme | Ce qui est disponible | Comment |
 |---|---|---|
@@ -134,7 +138,7 @@ localStorage["smokertrack.v1"] = {
 ## Tests
 
 ```bash
-npm test     # 91 tests
+npm test     # 100 tests
 ```
 
 | Fichier | Couverture |
@@ -145,6 +149,7 @@ npm test     # 91 tests
 | `src/components/TrackerApp.test.tsx` | rendu réel (jsdom) : compteur, annulation, objectif, persistance, restauration, effacement |
 | `src/components/WidgetFeatures.test.tsx` | manifeste/raccourcis, ajout rapide `?action=add`, aide widget, correction d'un jour passé |
 | `src/components/Reliability.test.tsx` | installation neuve sans statistiques inventées, jours hors suivi, objectif réglable, sauvegarde automatique |
+| `src/components/NativeWidget.test.tsx` | pont widget (sync, file d'attente, erreurs), fusion au démarrage, anti-double comptage |
 
 ## Déploiement gratuit (GitHub Pages)
 

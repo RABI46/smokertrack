@@ -43,7 +43,8 @@ export interface DailyLogStore {
    */
   increment(
     dayKey: string,
-    delta: 1 | -1,
+    /** Positif pour ajouter (une ou plusieurs cigarettes), négatif pour retirer. */
+    delta: number,
     currentCount: number,
     isToday?: boolean,
   ): Promise<void>;

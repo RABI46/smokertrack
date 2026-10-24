@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Déclaration du widget : taille minimale 2×1 cellules, redimensionnable.
+  `updatePeriodMillis` est plafonné à 30 minutes par Android ; le widget est de
+  toute façon rafraîchi immédiatement à chaque +1 et à chaque synchronisation
+  avec l'application.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="140dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_smokertrack"
+    android:previewLayout="@layout/widget_smokertrack"
+    android:description="@string/widget_description"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen" />

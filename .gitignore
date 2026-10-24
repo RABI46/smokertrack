@@ -1,0 +1,52 @@
+# Dépendances
+node_modules/
+.pnp
+.pnp.js
+
+# Build Next.js
+.next/
+out/
+build/
+dist/
+
+# Artefacts de la PWA générés au build (ne jamais committer)
+public/sw.js
+public/sw.js.map
+public/workbox-*.js
+public/workbox-*.js.map
+public/fallback-*.js
+public/swe-worker-*.js
+
+# Environnement — ne jamais committer de secrets
+.env
+.env*.local
+!.env.example
+
+# Tests & outils
+coverage/
+.vitest/
+*.tsbuildinfo
+next-env.d.ts
+
+# Journaux
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Système / éditeurs
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+*-debug.log
+
+# Azure
+.azure/

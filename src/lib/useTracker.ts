@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_GOAL,
   buildSeries,
@@ -18,6 +18,7 @@ import {
   shouldRemindBackup,
 } from "./localStore";
 import { downloadBackup, restoreBackup } from "./backup";
+import { consumeWidgetAdditions, syncWidgetState } from "./widgetBridge";
 import type { TrackerSnapshot } from "./types";
 
 /** Profondeur d'historique conservée et observable. */
@@ -109,6 +110,36 @@ export function useTracker(): TrackerApi {
       // Silencieux : le bandeau de rappel prendra le relais.
     }
   }, [snapshot]);
+
+  // Ajouts effectués depuis le widget Android : fusionnés une fois au démarrage,
+  // puis à chaque retour au premier plan (le widget peut être utilisé pendant
+  // que l'application est en arrière-plan).
+  const widgetMergeDone = useRef(false);
+  useEffect(() => {
+    if (widgetMergeDone.current) return;
+    widgetMergeDone.current = true;
+
+    const merge = async () => {
+      const pendingFromWidget = await consumeWidgetAdditions();
+      if (pendingFromWidget > 0) {
+        await store.increment(todayKey, pendingFromWidget, 0, true);
+      }
+    };
+
+    void merge();
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void merge();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => document.removeEventListener("visibilitychange", onVisible);
+  }, [store, todayKey]);
+
+  // Le widget affiche le compteur du jour : on le tient à jour à chaque changement.
+  useEffect(() => {
+    if (!snapshot) return;
+    void syncWidgetState({ todayKey, count: stats.today, goal: stats.goal });
+  }, [snapshot, todayKey, stats.today, stats.goal]);
 
   const lastSmokedAt = useMemo(() => {
     const dates = (snapshot?.entries ?? [])

@@ -137,7 +137,7 @@ export default function TrackerApp() {
         <span>
           Données locales, sans compte — <Link href="/confidentialite">confidentialité</Link>
         </span>
-        <span>SmokeTracker v1.3.0</span>
+        <span>SmokeTracker v1.4.0</span>
       </footer>
     </div>
   );

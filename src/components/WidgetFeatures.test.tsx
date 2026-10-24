@@ -104,14 +104,15 @@ describe("aide widget", () => {
     vi.unstubAllGlobals();
   });
 
-  it("explique les limites et les solutions Android/iOS", async () => {
+  it("explique les équivalents web hors application Android", async () => {
     render(<TrackerApp />);
     await screen.findByText("Sur cet appareil");
 
     expect(screen.getByText("Widget & accès rapide")).toBeTruthy();
     expect(screen.getByText("Android — raccourci en appui long")).toBeTruthy();
     expect(screen.getByText("iPhone / iPad — widget Raccourcis")).toBeTruthy();
-    expect(screen.getByText(/ne peut pas créer un vrai widget natif/i)).toBeTruthy();
+    expect(screen.getByText(/Le web ne peut pas créer de widget natif/i)).toBeTruthy();
+    expect(screen.getByText("Widget natif (application Android)")).toBeTruthy();
   });
 });
 

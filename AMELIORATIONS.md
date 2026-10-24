@@ -205,11 +205,23 @@ d'événements rend la synchro plus propre, avec des `id` stables et une fusion 
 
 ---
 
+## 4 bis. Mise à jour v1.4 — dette soldée
+
+| Point | État |
+|---|---|
+| §4.2 Node 24 en CI | ✅ Node 22 (exigence Capacitor 8) |
+| Actions GitHub obsolètes (6 PR Dependabot) | ✅ montées appliquées : checkout v7, setup-node v7, setup-java v6, configure-pages v6, deploy-pages v5, upload-pages-artifact v5, cache v6, upload/download-artifact v7/v8 |
+| PR Dependabot « dev-dependencies » (#7) | ❌ refusée : eslint 10 (flat config) + eslint-config-next 16 exigent Next 16 → à faire avec la migration §4.1 |
+| Bruit `Not implemented: navigation` dans les tests | ✅ neutralisé (`HTMLAnchorElement.prototype.click`) |
+| Branche distante parasite `manifest.json` | ✅ supprimée |
+| Widget natif Android | ✅ implémenté (voir docs/ANDROID.md) |
+
 ## 5. Ce que je ne recommande pas (et pourquoi)
 
 | Idée | Verdict |
 |---|---|
-| **Widget natif Android/iOS** | impossible depuis une PWA ; nécessiterait un projet natif (Kotlin/Swift), une publication sur les stores et une rupture avec le « gratuit sans compte ». Les raccourcis + badge couvrent 80 % du besoin. |
+| **Widget natif iOS** | impossible depuis une PWA et hors périmètre du projet Android ; nécessiterait Xcode, un compte développeur Apple (99 €/an) et une publication App Store. |
+| ~~Widget natif Android~~ | ✅ **fait en v1.4** : l'APK embarque un `AppWidgetProvider` (compteur + « +1 »), sans compte ni serveur. |
 | **Notifications push de rappel** | exigent un serveur (Web Push + VAPID) : contradiction directe avec l'absence de backend. Alternative : badge + bilan à l'ouverture. |
 | **Analytics (GA, Plausible…)** | sur une donnée de santé, même anonymisée, le coût de confiance dépasse le bénéfice. |
 | **Comptes utilisateurs / inscription** | transforme un outil privé en service à maintenir (RGPD, support, sauvegardes). Le local-first + export est un meilleur compromis ici. |

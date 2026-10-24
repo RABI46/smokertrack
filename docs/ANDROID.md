@@ -73,7 +73,8 @@ Pour un dépôt public, gardez le keystore **hors du dépôt** (il est ignoré p
 | Permissions | `INTERNET` uniquement (imposée par le WebView ; l'app fonctionne en mode avion) |
 | Thème | sombre, splash « flamme », barre d'état `#0b1120` |
 | Données | `localStorage` du WebView — même modèle local-first que la PWA |
-| Taille APK | ~4 Mo (l'export web pèse moins de 1 Mo) |
+| Taille APK | ~4,2 Mo (l'export web pèse moins de 1 Mo) |
+| Widget | `AppWidgetProvider` natif : compteur + bouton « +1 » |
 
 ### Ce qui a été adapté pour le natif
 
@@ -91,6 +92,49 @@ Le `versionCode` est fixé au numéro de run GitHub Actions : il croît donc à 
 qui permet l'installation par-dessus l'ancienne version. Le `versionName` suit
 `package.json`.
 
+## Widget natif d'écran d'accueil
+
+L'APK embarque un **vrai widget Android** (`AppWidgetProvider`), pas une simple icône :
+
+| Élément | Comportement |
+|---|---|
+| Affichage | Nombre de cigarettes du jour + objectif |
+| Bouton **+ Une cigarette** | Enregistre une cigarette **sans ouvrir** l'application |
+| Toucher le compteur | Ouvre l'application |
+| Minuit | Le widget repart de zéro même si l'app n'a pas été ouverte |
+| Taille | 2×2 cellules par défaut, redimensionnable (2×1 minimum) |
+| Thème | Fond bleu nuit, accents orange, cohérent avec l'app |
+
+### Comment les données circulent
+
+Le WebView stocke les données dans `localStorage` ; le widget vit dans un autre processus et
+ne peut pas y accéder. Un pont étroit fait la jointure :
+
+```
+WebView (source de vérité)            Widget natif
+  localStorage["smokertrack.v1"]
+            │  après chaque modification
+            ▼
+  WidgetBridge.sync({todayKey,count,goal})
+            │                        ┌──────────────────────────┐
+            └──► SharedPreferences ──►  lecture + affichage     │
+                 smokertrack_widget    │  bouton "+1"             │
+                                       │   → pending_add++        │
+                                       └───────────┬──────────────┘
+            ┌──────────────────────────────────────┘
+            ▼
+  WidgetBridge.consumePending()  →  appliqué au localStorage
+  (au démarrage et au retour au premier plan, une seule fois)
+```
+
+- `WidgetStorage.java` : lecture/écriture des préférences partagées.
+- `SmokeWidgetProvider.java` : rendu du widget, gestion du « +1 » et du changement de jour.
+- `WidgetBridgePlugin.java` : plugin Capacitor (`sync`, `consumePending`), enregistré dans
+  `MainActivity`.
+- `src/lib/widgetBridge.ts` : côté web, no-op total dans un navigateur.
+
+Aucun réseau, aucune permission supplémentaire : uniquement un fichier de préférences local.
+
 ## Ce que l'APK change (et ne change pas)
 
 **Change** : installation par icône, hors-ligne complet, badge et raccourcis plus fiables,
@@ -100,10 +144,8 @@ splash screen, aucune dépendance au navigateur.
 tout, comme vider les données du site pour la PWA → l'export JSON (manuel ou hebdomadaire)
 reste indispensable.
 
-**Toujours impossible** : widget natif d'écran d'accueil. Un `AppWidget` Android exige du
-code Kotlin/Java dans l'app (ce qui serait faisable ici puisqu'on a un projet natif) et un
-service de mise à jour ; c'est une évolution distincte, non incluse. Les raccourcis
-(appui long sur l'icône) et le badge restent les équivalents disponibles.
+**Différence avec la PWA** : l'APK fournit le widget natif, impossible depuis un navigateur.
+La PWA conserve les raccourcis (appui long sur l'icône) et le badge comme équivalents.
 
 ## Publication sur le Play Store (optionnel)
 

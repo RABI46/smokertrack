@@ -1,65 +1,100 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { isNativeApp } from "@/lib/widgetBridge";
 import styles from "./tracker.module.css";
 
 /**
- * Aide « widget sur l'écran d'accueil ».
+ * Aide « widget & accès rapide ».
  *
- * ⚠️ Honnêteté technique : une PWA ne peut pas déclarer de widget natif
- * (App Widget Android / WidgetKit iOS), qui exige du code natif et une
- * publication sur les stores. Ce qui est réellement possible depuis le web est
- * décrit ici, sans promesse trompeuse.
+ * Depuis la version 1.4, l'APK Android embarque un **vrai widget natif**
+ * (AppWidget) : compteur du jour + bouton « +1 ». Dans un navigateur, ce widget
+ * n'existe pas — on explique alors les équivalents web, sans promesse trompeuse.
  */
 export default function WidgetHelp() {
+  const [native, setNative] = useState(false);
+
+  // La détection n'est possible qu'après hydratation (Capacitor est injecté côté client).
+  useEffect(() => setNative(isNativeApp()), []);
+
   return (
     <section className={styles.card} aria-labelledby="widget-titre">
       <h2 className={styles.sectionTitle} id="widget-titre">
-        Widget &amp; accès rapide
+        {native ? "Widget d'écran d'accueil" : "Widget & accès rapide"}
       </h2>
-      <p className={styles.sectionHint}>
-        Le web ne peut pas créer un vrai widget natif (réservé aux applications publiées sur les
-        stores). Voici les équivalents réellement fonctionnels, sans compte ni serveur.
-      </p>
 
-      <details className={styles.helpBlock}>
-        <summary className={styles.helpSummary}>Android — raccourci en appui long</summary>
-        <ol className={styles.helpList}>
-          <li>Installer l&apos;application (bouton « Installer » ou menu du navigateur).</li>
-          <li>Sur l&apos;écran d&apos;accueil, appuyer longuement sur l&apos;icône SmokeTracker.</li>
-          <li>
-            Choisir <strong>« Ajouter une cigarette »</strong> : la cigarette est enregistrée
-            immédiatement, sans navigation.
-          </li>
-          <li>
-            Pour un accès encore plus direct, glisser ce raccourci sur l&apos;écran d&apos;accueil
-            (variable selon le constructeur).
-          </li>
-        </ol>
-      </details>
+      {native ? (
+        <>
+          <p className={styles.sectionHint}>
+            L&apos;application Android inclut un widget natif : compteur du jour et ajout d&apos;une
+            cigarette sans ouvrir l&apos;application.
+          </p>
+          <ol className={styles.helpList}>
+            <li>Revenir à l&apos;écran d&apos;accueil, appuyer longuement sur une zone vide.</li>
+            <li>Choisir <strong>« Widgets »</strong> puis <strong>SmokeTracker</strong>.</li>
+            <li>
+              Glisser le widget sur l&apos;écran d&apos;accueil. Le bouton <strong>+ Une
+              cigarette</strong> enregistre une cigarette immédiatement.
+            </li>
+            <li>
+              Redimensionnable (2×1 minimum). Les ajouts faits depuis le widget sont fusionnés
+              dans les données à la prochaine ouverture de l&apos;application.
+            </li>
+          </ol>
+        </>
+      ) : (
+        <>
+          <p className={styles.sectionHint}>
+            Le web ne peut pas créer de widget natif. Voici les équivalents fonctionnels dans un
+            navigateur — et le widget natif existe dans l&apos;application Android.
+          </p>
 
-      <details className={styles.helpBlock}>
-        <summary className={styles.helpSummary}>iPhone / iPad — widget Raccourcis</summary>
-        <ol className={styles.helpList}>
-          <li>Installer l&apos;application (« Partager » → « Sur l&apos;écran d&apos;accueil »).</li>
-          <li>Ouvrir l&apos;app <strong>Raccourcis</strong> → « + » → action « Ouvrir des URL ».</li>
-          <li>
-            Coller l&apos;adresse <code id="widget-url">{`${getBaseUrl()}?action=add`}</code> et
-            nommer le raccourci « Ajouter une cigarette ».
-          </li>
-          <li>
-            Revenir à l&apos;écran d&apos;accueil, ajouter un widget <strong>Raccourcis</strong> et
-            y placer ce raccourci.
-          </li>
-        </ol>
-      </details>
+          <details className={styles.helpBlock}>
+            <summary className={styles.helpSummary}>Android — raccourci en appui long</summary>
+            <ol className={styles.helpList}>
+              <li>Installer l&apos;application (bouton « Installer » ou menu du navigateur).</li>
+              <li>Sur l&apos;écran d&apos;accueil, appuyer longuement sur l&apos;icône SmokeTracker.</li>
+              <li>
+                Choisir <strong>« Ajouter une cigarette »</strong> : la cigarette est enregistrée
+                immédiatement, sans navigation.
+              </li>
+            </ol>
+          </details>
 
-      <details className={styles.helpBlock}>
-        <summary className={styles.helpSummary}>Badge sur l&apos;icône</summary>
-        <p className={styles.hint}>
-          Sur Android et iOS 16.4+ (application installée), l&apos;icône affiche le nombre de
-          cigarettes du jour. Aucun réglage nécessaire.
-        </p>
-      </details>
+          <details className={styles.helpBlock}>
+            <summary className={styles.helpSummary}>iPhone / iPad — widget Raccourcis</summary>
+            <ol className={styles.helpList}>
+              <li>Installer l&apos;application (« Partager » → « Sur l&apos;écran d&apos;accueil »).</li>
+              <li>Ouvrir l&apos;app <strong>Raccourcis</strong> → « + » → action « Ouvrir des URL ».</li>
+              <li>
+                Coller l&apos;adresse{" "}
+                <code id="widget-url">{`${getBaseUrl()}?action=add`}</code> et nommer le raccourci
+                « Ajouter une cigarette ».
+              </li>
+              <li>
+                Revenir à l&apos;écran d&apos;accueil, ajouter un widget <strong>Raccourcis</strong> et
+                y placer ce raccourci.
+              </li>
+            </ol>
+          </details>
+
+          <details className={styles.helpBlock}>
+            <summary className={styles.helpSummary}>Widget natif (application Android)</summary>
+            <p className={styles.hint}>
+              Le widget natif nécessite l&apos;APK Android, téléchargeable depuis les artefacts du
+              workflow <em>Android APK</em> du dépôt.
+            </p>
+          </details>
+
+          <details className={styles.helpBlock}>
+            <summary className={styles.helpSummary}>Badge sur l&apos;icône</summary>
+            <p className={styles.hint}>
+              Sur Android et iOS 16.4+ (application installée), l&apos;icône affiche le nombre de
+              cigarettes du jour. Aucun réglage nécessaire.
+            </p>
+          </details>
+        </>
+      )}
     </section>
   );
 }

@@ -4,4 +4,13 @@
     <string name="title_activity_main">SmokeTracker</string>
     <string name="package_name">io.github.rabi46.smokertrack</string>
     <string name="custom_url_scheme">io.github.rabi46.smokertrack</string>
+
+    <!-- Widget d'écran d'accueil -->
+    <string name="widget_label_today">Aujourd\'hui</string>
+    <string name="widget_goal_format">objectif %1$d</string>
+    <string name="widget_goal_default">objectif 10</string>
+    <string name="widget_add">+ Une cigarette</string>
+    <string name="widget_hint_today">Ouvrez l\'application pour vos tendances</string>
+    <string name="widget_hint_stale">Ouvrez l\'application pour actualiser</string>
+    <string name="widget_description">Compteur du jour et ajout rapide d\'une cigarette</string>
 </resources>

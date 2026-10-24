@@ -226,15 +226,17 @@ export function toEntries(state: PersistedState, dayKeys: string[]): DayEntry[] 
 export function applyIncrement(
   state: PersistedState,
   dayKey: string,
-  delta: 1 | -1,
+  delta: number,
   now: Date,
   isToday = true,
 ): PersistedState {
+  const step = Math.trunc(delta);
+  if (!Number.isFinite(step) || step === 0) return state;
   const current = state.days[dayKey]?.count ?? 0;
-  const nextCount = clampCount(current + delta);
+  const nextCount = clampCount(current + step);
   if (nextCount === current) return state;
 
-  const isAdd = delta > 0;
+  const isAdd = step > 0;
   return {
     ...state,
     days: {

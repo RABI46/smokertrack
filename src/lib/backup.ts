@@ -8,8 +8,11 @@ import {
 import { dayKey } from "./date";
 import type { PersistedState } from "./localStore";
 
-/** Télécharge l'état courant au format JSON (`smokertrack-AAAA-MM-JJ.json`). */
-export function downloadBackup(now: Date = new Date()): void {
+/**
+ * Télécharge l'état courant au format JSON (`smokertrack-AAAA-MM-JJ.json`).
+ * `automatic = true` correspond à la sauvegarde hebdomadaire silencieuse.
+ */
+export function downloadBackup(now: Date = new Date(), automatic = false): void {
   if (typeof window === "undefined") return;
 
   const backup = toBackup(readState(), now);
@@ -27,7 +30,7 @@ export function downloadBackup(now: Date = new Date()): void {
   window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
 
   // Réarme le rappel de sauvegarde.
-  markExported(now);
+  markExported(now, automatic);
 }
 
 /**

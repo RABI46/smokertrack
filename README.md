@@ -12,7 +12,8 @@ local-first** : aucun compte, aucun serveur, aucune donnée envoyée nulle part.
 ## Fonctionnalités
 
 - **Compteur du jour** en un tap, avec annulation de la dernière saisie.
-- **Objectif quotidien** réglable (1–100) et barre de progression.
+- **Objectif quotidien** réglable (1–100) par curseur, saisie directe ou boutons −/+, avec barre
+  de progression.
 - **Tendances** : moyenne sur 7 jours, total sur 30 jours, comparaison avec la semaine
   précédente, jours dans l'objectif, série en cours.
 - **Histogramme** des 7 derniers jours et **historique** des 10 derniers jours.
@@ -25,7 +26,12 @@ local-first** : aucun compte, aucun serveur, aucune donnée envoyée nulle part.
   calculs utilisent le fuseau horaire de l'appareil.
 - **Correction d'un jour passé** : boutons −/+ sur chaque ligne de l'historique (l'heure de la
   dernière cigarette d'un jour passé n'est pas écrasée).
-- **Rappel de sauvegarde** : bandeau si aucun export n'a eu lieu depuis 14 jours.
+- **Statistiques honnêtes** : les jours antérieurs au début du suivi ne sont jamais comptés
+  comme des réussites (une installation neuve n'affiche plus « 30 / 30 »).
+- **Sauvegarde automatique hebdomadaire** : export JSON déclenché une fois par semaine (option
+  désactivable) + rappel si aucun export depuis 14 jours.
+- **Mise à jour PWA contrôlée** : bandeau « Nouvelle version disponible » et rechargement au
+  clic (`SKIP_WAITING`), au lieu d'un service worker qui prend la main sans prévenir.
 - **Stockage persistant** : demande `navigator.storage.persist()` pour limiter les purges.
 - **Badge sur l'icône** : nombre de cigarettes du jour via la Badging API (Android, iOS 16.4+).
 - **Ajout en un tap depuis l'écran d'accueil** : raccourci `?action=add` (voir ci-dessous).
@@ -108,7 +114,7 @@ localStorage["smokertrack.v1"] = {
 ## Tests
 
 ```bash
-npm test     # 64 tests
+npm test     # 91 tests
 ```
 
 | Fichier | Couverture |
@@ -118,6 +124,7 @@ npm test     # 64 tests
 | `src/lib/localStore.test.ts` | incréments, plancher zéro, plafond, jours passés, export/import, rejets, rappel de sauvegarde |
 | `src/components/TrackerApp.test.tsx` | rendu réel (jsdom) : compteur, annulation, objectif, persistance, restauration, effacement |
 | `src/components/WidgetFeatures.test.tsx` | manifeste/raccourcis, ajout rapide `?action=add`, aide widget, correction d'un jour passé |
+| `src/components/Reliability.test.tsx` | installation neuve sans statistiques inventées, jours hors suivi, objectif réglable, sauvegarde automatique |
 
 ## Déploiement gratuit (GitHub Pages)
 
@@ -173,8 +180,8 @@ public/
 ## Limites connues
 
 - **Les données sont liées à un appareil et à un navigateur.** Vider les données du site,
-  désinstaller le navigateur ou changer de téléphone les efface : l'export JSON est le seul
-  filet de sécurité. Une synchronisation optionnelle est la première amélioration proposée.
+  désinstaller le navigateur ou changer de téléphone les efface : l'export JSON (manuel ou
+  hebdomadaire automatique) est le seul filet de sécurité. Une synchronisation optionnelle est la première amélioration proposée.
 - Pas de **widget natif** (impossible sans application native) ni de notifications push (qui
   exigeraient un serveur) : seuls les raccourcis et le badge sont disponibles.
 - Pas de suivi des rechutes, des économies ou des déclencheurs (notes par cigarette).

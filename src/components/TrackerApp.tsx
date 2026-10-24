@@ -71,6 +71,15 @@ export default function TrackerApp() {
         </div>
       ) : null}
 
+      {tracker.autoBackupDone ? (
+        <div className={`${styles.banner} ${styles.bannerInfo}`} role="status">
+          <span>
+            <strong>Sauvegarde automatique effectuée.</strong> Un fichier JSON vient d&apos;être
+            téléchargé : conservez-le pour pouvoir restaurer vos données.
+          </span>
+        </div>
+      ) : null}
+
       {tracker.needsBackupExport ? (
         <div className={`${styles.banner} ${styles.bannerInfo}`} role="status">
           <span>
@@ -114,7 +123,9 @@ export default function TrackerApp() {
       <SettingsCard
         goal={tracker.stats.goal}
         pending={tracker.pending}
+        autoBackup={tracker.autoBackup}
         onChangeGoal={(goal) => void tracker.updateGoal(goal)}
+        onToggleAutoBackup={tracker.setAutoBackupEnabled}
         onEraseAll={handleErase}
         onExport={() => tracker.exportBackup()}
         onImport={(file) => void tracker.importBackup(file)}
@@ -124,7 +135,7 @@ export default function TrackerApp() {
         <span>
           Données locales, sans compte — <Link href="/confidentialite">confidentialité</Link>
         </span>
-        <span>SmokeTracker v1.1.0</span>
+        <span>SmokeTracker v1.2.0</span>
       </footer>
     </div>
   );

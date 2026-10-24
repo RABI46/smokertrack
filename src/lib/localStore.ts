@@ -18,6 +18,8 @@ const LEGACY_KEY = "smokertrack.demo.v1";
 const META_KEY = "smokertrack.meta.v1";
 /** Au-delà de ce délai, on rappelle à l'utilisateur d'exporter une sauvegarde. */
 export const BACKUP_REMINDER_DAYS = 14;
+/** Fréquence de la sauvegarde automatique (une fois par semaine). */
+export const AUTO_BACKUP_DAYS = 7;
 
 export interface PersistedDay {
   count: number;
@@ -107,21 +109,72 @@ function writeState(state: PersistedState): void {
 
 export interface StoreMeta {
   lastExportAt: string | null;
+  /** Sauvegarde automatique hebdomadaire (activée par défaut). */
+  autoBackup: boolean;
+  /** Dernier export automatique effectué (évite les répétitions). */
+  lastAutoExportAt?: string | null;
 }
 
+const DEFAULT_META: StoreMeta = { lastExportAt: null, autoBackup: true };
+
 export function readMeta(): StoreMeta {
-  if (!hasStorage()) return { lastExportAt: null };
+  if (!hasStorage()) return DEFAULT_META;
   const raw = parseJson(window.localStorage.getItem(META_KEY));
-  if (typeof raw !== "object" || raw === null) return { lastExportAt: null };
-  const value = (raw as Partial<StoreMeta>).lastExportAt;
-  return { lastExportAt: typeof value === "string" ? value : null };
+  if (typeof raw !== "object" || raw === null) return DEFAULT_META;
+
+  const value = raw as Partial<StoreMeta>;
+  return {
+    lastExportAt: typeof value.lastExportAt === "string" ? value.lastExportAt : null,
+    autoBackup: typeof value.autoBackup === "boolean" ? value.autoBackup : true,
+    lastAutoExportAt:
+      typeof value.lastAutoExportAt === "string" ? value.lastAutoExportAt : null,
+  };
+}
+
+/** Active ou désactive la sauvegarde automatique hebdomadaire. */
+export function setAutoBackup(enabled: boolean): void {
+  if (!hasStorage()) return;
+  try {
+    const meta = readMeta();
+    window.localStorage.setItem(META_KEY, JSON.stringify({ ...meta, autoBackup: enabled }));
+  } catch {
+    // Sans importance : le réglage sera simplement perdu.
+  }
+}
+
+/**
+ * Faut-il déclencher une sauvegarde automatique ?
+ * Oui si l'option est active, qu'il existe des données, et qu'aucun export
+ * (manuel ou automatique) n'a eu lieu depuis `AUTO_BACKUP_DAYS`.
+ */
+export function shouldAutoBackup(
+  state: PersistedState,
+  meta: StoreMeta,
+  now: Date = new Date(),
+): boolean {
+  if (!meta.autoBackup) return false;
+  const hasData = Object.values(state.days).some((day) => day.count > 0);
+  if (!hasData) return false;
+
+  const dates = [meta.lastExportAt, meta.lastAutoExportAt]
+    .filter((value): value is string => typeof value === "string")
+    .map((value) => new Date(value).getTime())
+    .filter((value) => !Number.isNaN(value));
+
+  if (dates.length === 0) return true;
+  const last = Math.max(...dates);
+  return (now.getTime() - last) / 86_400_000 >= AUTO_BACKUP_DAYS;
 }
 
 /** Enregistre la date du dernier export (appelé après un téléchargement réussi). */
-export function markExported(now: Date = new Date()): void {
+export function markExported(now: Date = new Date(), automatic = false): void {
   if (!hasStorage()) return;
   try {
-    window.localStorage.setItem(META_KEY, JSON.stringify({ lastExportAt: now.toISOString() }));
+    const meta = readMeta();
+    const next: StoreMeta = automatic
+      ? { ...meta, lastAutoExportAt: now.toISOString() }
+      : { ...meta, lastExportAt: now.toISOString(), lastAutoExportAt: now.toISOString() };
+    window.localStorage.setItem(META_KEY, JSON.stringify(next));
   } catch {
     // Sans importance : le rappel sera simplement réaffiché.
   }
@@ -158,6 +211,9 @@ export function toEntries(state: PersistedState, dayKeys: string[]): DayEntry[] 
       date,
       count: clampCount(day?.count ?? 0),
       lastSmokedAt: day?.lastSmokedAt ? new Date(day.lastSmokedAt) : null,
+      // Un jour n'est « suivi » que s'il possède une entrée : un jour absent
+      // n'est pas un jour à zéro cigarette, c'est un jour hors suivi.
+      tracked: Boolean(day),
     };
   });
 }

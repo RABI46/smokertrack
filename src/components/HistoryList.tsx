@@ -20,7 +20,7 @@ export default function HistoryList({
   onAdjust,
 }: HistoryListProps) {
   const days = takeLast(series, 10).reverse();
-  const hasData = series.some((point) => point.count > 0);
+  const hasData = series.some((point) => point.tracked);
 
   return (
     <section className={styles.card} aria-labelledby="historique-titre">
@@ -35,6 +35,7 @@ export default function HistoryList({
         <ul className={styles.list}>
           {days.map((point) => {
             const withinGoal = point.count <= goal;
+            const untracked = !point.tracked;
             return (
               <li className={styles.listRow} key={point.date}>
                 <span className={styles.listDate}>
@@ -42,12 +43,15 @@ export default function HistoryList({
                   {point.date === todayKey ? " (aujourd'hui)" : ""}
                 </span>
                 <span className={styles.listControls}>
-                  {point.count > 0 && withinGoal ? (
+                  {untracked ? (
+                    <span className={styles.statTrend}>hors suivi</span>
+                  ) : null}
+                  {!untracked && point.count > 0 && withinGoal ? (
                     <span className={styles.pillOk}>dans l&apos;objectif</span>
-                  ) : point.count > goal ? (
+                  ) : !untracked && point.count > goal ? (
                     <span className={`${styles.pillOk} ${styles.pillOver}`}>dépassé</span>
                   ) : null}
-                  <span className={styles.listCount}>{point.count}</span>
+                  <span className={styles.listCount}>{untracked ? "—" : point.count}</span>
                   <button
                     type="button"
                     className={styles.stepButton}

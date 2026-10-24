@@ -16,7 +16,8 @@ interface WeeklyChartProps {
  */
 export default function WeeklyChart({ series, goal, todayKey }: WeeklyChartProps) {
   const lastSeven = takeLast(series, 7);
-  const max = Math.max(goal, ...lastSeven.map((point) => point.count), 1);
+  const tracked = lastSeven.filter((point) => point.tracked);
+  const max = Math.max(goal, ...tracked.map((point) => point.count), 1);
   const goalOffset = Math.min(100, (goal / max) * 100);
 
   return (
@@ -25,32 +26,37 @@ export default function WeeklyChart({ series, goal, todayKey }: WeeklyChartProps
         7 derniers jours
       </h2>
       <p className={styles.sectionHint}>
-        Vert : dans l&apos;objectif ({goal}). Le trait pointillé marque l&apos;objectif.
+        Vert : dans l&apos;objectif ({goal}). Les barres creuses correspondent aux jours antérieurs
+        au début du suivi.
       </p>
 
       <div className={styles.chart} role="img" aria-label={buildSummary(lastSeven, goal)}>
         {lastSeven.map((point) => {
-          const height = Math.max(4, Math.round((point.count / max) * 100));
+          const height = point.tracked ? Math.max(4, Math.round((point.count / max) * 100)) : 0;
           const isToday = point.date === todayKey;
           return (
             <div className={styles.chartColumn} key={point.date}>
-              <span className={styles.chartValue}>{point.count}</span>
+              <span className={styles.chartValue}>{point.tracked ? point.count : "—"}</span>
               <div className={styles.chartBarWrapper}>
                 <div
                   className={styles.chartGoalLine}
                   style={{ bottom: `${goalOffset}%` }}
                   aria-hidden="true"
                 />
-                <div
-                  className={[
-                    styles.chartBar,
-                    point.count <= goal ? styles.chartBarOk : "",
-                    isToday ? styles.chartBarToday : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  style={{ height: `${height}%` }}
-                />
+                {point.tracked ? (
+                  <div
+                    className={[
+                      styles.chartBar,
+                      point.count <= goal ? styles.chartBarOk : "",
+                      isToday ? styles.chartBarToday : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    style={{ height: `${height}%` }}
+                  />
+                ) : (
+                  <div className={styles.chartBarEmpty} aria-hidden="true" />
+                )}
               </div>
               <span className={`${styles.chartLabel} ${isToday ? styles.chartLabelToday : ""}`}>
                 {formatDayLabel(point.date)}
@@ -65,7 +71,9 @@ export default function WeeklyChart({ series, goal, todayKey }: WeeklyChartProps
 
 function buildSummary(series: SeriesPoint[], goal: number): string {
   const details = series
-    .map((point) => `${formatDayLabel(point.date)} : ${point.count}`)
+    .map((point) =>
+      point.tracked ? `${formatDayLabel(point.date)} : ${point.count}` : `${formatDayLabel(point.date)} : non suivi`,
+    )
     .join(", ");
   return `Consommation des 7 derniers jours (objectif ${goal}). ${details}.`;
 }

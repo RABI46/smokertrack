@@ -1,6 +1,6 @@
 "use client";
 
-import { sum, takeLast, takePrevious, trendPercent } from "@/lib/domain";
+import { countTracked, sum, takeLast, takePrevious, trendPercent } from "@/lib/domain";
 import type { DailyStats, SeriesPoint } from "@/lib/domain";
 import styles from "./tracker.module.css";
 
@@ -29,32 +29,48 @@ export default function StatsGrid({ series, stats }: StatsGridProps) {
   const previousSeven = takePrevious(series, 7, 7);
   const lastSevenTotal = sum(lastSeven);
   const previousSevenTotal = sum(previousSeven);
+  const lastSevenTracked = countTracked(lastSeven);
   const lastSevenAverage =
-    lastSeven.length > 0 ? Math.round((lastSevenTotal / lastSeven.length) * 10) / 10 : 0;
+    lastSevenTracked > 0 ? Math.round((lastSevenTotal / lastSevenTracked) * 10) / 10 : 0;
+
+  const nothingTracked = stats.trackedDays === 0;
 
   return (
     <section className={styles.card} aria-labelledby="tendances-titre">
       <h2 className={styles.sectionTitle} id="tendances-titre">
         Tendances
       </h2>
-      <p className={styles.sectionHint}>Fenêtre de 30 jours, comparée aux 7 jours précédents.</p>
+      <p className={styles.sectionHint}>
+        Calculs limités aux jours réellement suivis — les jours antérieurs au début du suivi ne
+        sont pas comptés.
+      </p>
 
       <div className={styles.statsGrid}>
         <div className={styles.stat}>
           <span className={styles.statLabel}>Moyenne 7 jours</span>
           <span className={styles.statValue}>{lastSevenAverage}</span>
-          <Trend current={lastSevenTotal} previous={previousSevenTotal} />
+          {lastSevenTracked >= 2 ? (
+            <Trend current={lastSevenTotal} previous={previousSevenTotal} />
+          ) : (
+            <span className={styles.statTrend}>
+              {lastSevenTracked === 0 ? "aucune donnée" : "en cours de semaine"}
+            </span>
+          )}
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>Total 30 jours</span>
           <span className={styles.statValue}>{stats.total}</span>
-          <span className={styles.statTrend}>sur {series.length} jours suivis</span>
+          <span className={styles.statTrend}>
+            {stats.trackedDays === 0
+              ? "aucun jour suivi pour l'instant"
+              : `sur ${stats.trackedDays} jour${stats.trackedDays > 1 ? "s" : ""} suivi${stats.trackedDays > 1 ? "s" : ""}`}
+          </span>
         </div>
         <div className={styles.stat}>
           <span className={styles.statLabel}>Jours dans l&apos;objectif</span>
           <span className={styles.statValue}>
             {stats.daysOnTarget}
-            <span className={styles.statTrend}> / {series.length}</span>
+            <span className={styles.statTrend}> / {stats.trackedDays}</span>
           </span>
           <span className={styles.statTrend}>objectif {stats.goal} / jour</span>
         </div>
@@ -65,7 +81,11 @@ export default function StatsGrid({ series, stats }: StatsGridProps) {
             <span className={styles.statTrend}> j</span>
           </span>
           <span className={styles.statTrend}>
-            {stats.streak > 0 ? "jours consécutifs dans l'objectif" : "à relancer aujourd'hui"}
+            {nothingTracked
+              ? "commencez votre suivi"
+              : stats.streak > 0
+                ? "jours consécutifs dans l'objectif"
+                : "à relancer aujourd'hui"}
           </span>
         </div>
       </div>

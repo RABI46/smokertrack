@@ -6,6 +6,12 @@ export interface DayEntry {
   count: number;
   /** Horodatage de la dernière cigarette de la journée. */
   lastSmokedAt: Date | null;
+  /**
+   * `true` dès qu'une donnée existe pour ce jour. Permet de distinguer
+   * « journée sans cigarette » de « journée antérieure au suivi » : sans cela,
+   * une installation neuve afficherait 30 jours parfaits.
+   */
+  tracked: boolean;
 }
 
 /** Photo complète affichée par l'application. */

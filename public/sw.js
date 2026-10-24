@@ -3,6 +3,7 @@
  *
  * Stratégies :
  *  - installation : pré-cache de la coquille applicative (HTML, manifeste, icônes) ;
+ *    la nouvelle version attend le message SKIP_WAITING avant de prendre la main ;
  *  - navigation : réseau d'abord (contenu frais), repli sur le cache hors-ligne ;
  *  - ressources statiques : stale-while-revalidate (rapide et auto-actualisé).
  *
@@ -10,7 +11,7 @@
  * worker fonctionne aussi bien à la racine que sous /smokertrack/.
  */
 
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const CACHE_NAME = `smokertrack-${CACHE_VERSION}`;
 
 const scope = self.registration.scope;
@@ -31,7 +32,8 @@ self.addEventListener("install", (event) => {
       await Promise.all(
         APP_SHELL.map((url) => cache.add(url).catch(() => undefined)),
       );
-      await self.skipWaiting();
+      // Pas de `skipWaiting()` automatique : la nouvelle version attend que
+      // l'utilisateur clique « Recharger » (voir ServiceWorkerRegistration).
     }),
   );
 });

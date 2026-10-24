@@ -13,6 +13,8 @@ import {
   createLocalStore,
   readMeta,
   readState,
+  setAutoBackup,
+  shouldAutoBackup,
   shouldRemindBackup,
 } from "./localStore";
 import { downloadBackup, restoreBackup } from "./backup";
@@ -34,6 +36,9 @@ export interface TrackerApi {
   lastSmokedAt: Date | null;
   pending: boolean;
   needsBackupExport: boolean;
+  autoBackup: boolean;
+  autoBackupDone: boolean;
+  setAutoBackupEnabled: (enabled: boolean) => void;
   add: () => Promise<void>;
   undo: () => Promise<void>;
   /** Corrige une journée passée (ou du jour) de ±1. */
@@ -61,6 +66,8 @@ export function useTracker(): TrackerApi {
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [needsBackupExport, setNeedsBackupExport] = useState(false);
+  const [autoBackup, setAutoBackupState] = useState(true);
+  const [autoBackupDone, setAutoBackupDone] = useState(false);
 
   useEffect(() => {
     setSnapshot(null);
@@ -80,10 +87,27 @@ export function useTracker(): TrackerApi {
   const goal = snapshot?.goal ?? DEFAULT_GOAL;
   const stats = useMemo(() => computeStats(series, goal), [series, goal]);
 
-  // Rappel de sauvegarde : recalculé à chaque changement de données.
+  // Rappel et sauvegarde automatique : recalculés à chaque changement de données.
   useEffect(() => {
     if (!snapshot) return;
-    setNeedsBackupExport(shouldRemindBackup(readState(), readMeta()));
+    const state = readState();
+    const meta = readMeta();
+    setAutoBackupState(meta.autoBackup);
+    setNeedsBackupExport(shouldRemindBackup(state, meta));
+
+    if (!shouldAutoBackup(state, meta)) return;
+    // Une seule tentative par session : un téléchargement surprise à chaque
+    // ouverture serait insupportable.
+    if (sessionStorage.getItem("smokertrack.autoExported")) return;
+    sessionStorage.setItem("smokertrack.autoExported", "1");
+
+    try {
+      downloadBackup(new Date(), true);
+      setAutoBackupDone(true);
+      setNeedsBackupExport(false);
+    } catch {
+      // Silencieux : le bandeau de rappel prendra le relais.
+    }
   }, [snapshot]);
 
   const lastSmokedAt = useMemo(() => {
@@ -136,6 +160,11 @@ export function useTracker(): TrackerApi {
 
   const eraseAll = useCallback(() => withPending(() => store.deleteAll()), [store, withPending]);
 
+  const setAutoBackupEnabled = useCallback((enabled: boolean) => {
+    setAutoBackup(enabled);
+    setAutoBackupState(enabled);
+  }, []);
+
   const exportBackupNow = useCallback(() => {
     try {
       downloadBackup();
@@ -165,6 +194,9 @@ export function useTracker(): TrackerApi {
     lastSmokedAt,
     pending,
     needsBackupExport,
+    autoBackup,
+    autoBackupDone,
+    setAutoBackupEnabled,
     add,
     undo,
     adjustDay,

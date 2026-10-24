@@ -4,8 +4,10 @@ Suivi personnel de consommation de cigarettes — **PWA installable, hors-ligne 
 local-first** : aucun compte, aucun serveur, aucune donnée envoyée nulle part.
 
 **Application en ligne : <https://rabi46.github.io/smokertrack/>**
-**Application Android (APK) :** artefact du workflow *Android APK* dans l'onglet Actions du
-dépôt — voir [docs/ANDROID.md](docs/ANDROID.md).
+**Application Android (APK) :**
+<https://github.com/RABI46/smokertrack/actions/workflows/android.yml> → dernier run →
+*Artifacts* → `smokertrack-apk-<n>` → `smokertrack-<version>-<n>.apk` (~4 Mo, Android 7+).
+Voir [docs/ANDROID.md](docs/ANDROID.md).
 
 > Le suivi du tabagisme est une donnée de santé. L'application ne stocke donc rien ailleurs
 > que dans le navigateur de l'utilisateur, et propose un export de sauvegarde ainsi qu'un

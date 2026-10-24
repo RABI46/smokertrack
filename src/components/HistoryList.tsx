@@ -8,9 +8,17 @@ interface HistoryListProps {
   series: SeriesPoint[];
   goal: number;
   todayKey: string;
+  pending: boolean;
+  onAdjust: (date: string, delta: 1 | -1, currentCount: number) => void;
 }
 
-export default function HistoryList({ series, goal, todayKey }: HistoryListProps) {
+export default function HistoryList({
+  series,
+  goal,
+  todayKey,
+  pending,
+  onAdjust,
+}: HistoryListProps) {
   const days = takeLast(series, 10).reverse();
   const hasData = series.some((point) => point.count > 0);
 
@@ -19,9 +27,11 @@ export default function HistoryList({ series, goal, todayKey }: HistoryListProps
       <h2 className={styles.sectionTitle} id="historique-titre">
         Historique
       </h2>
-      <p className={styles.sectionHint}>10 derniers jours, du plus récent au plus ancien.</p>
+      <p className={styles.sectionHint}>
+        10 derniers jours, du plus récent au plus ancien. Ajustez un oubli directement ici.
+      </p>
 
-      {hasData ? (
+      {hasData || days.length > 0 ? (
         <ul className={styles.list}>
           {days.map((point) => {
             const withinGoal = point.count <= goal;
@@ -31,13 +41,30 @@ export default function HistoryList({ series, goal, todayKey }: HistoryListProps
                   {formatLongDate(point.date)}
                   {point.date === todayKey ? " (aujourd'hui)" : ""}
                 </span>
-                <span>
+                <span className={styles.listControls}>
                   {point.count > 0 && withinGoal ? (
                     <span className={styles.pillOk}>dans l&apos;objectif</span>
                   ) : point.count > goal ? (
                     <span className={`${styles.pillOk} ${styles.pillOver}`}>dépassé</span>
                   ) : null}
-                  <span className={styles.listCount}> {point.count}</span>
+                  <span className={styles.listCount}>{point.count}</span>
+                  <button
+                    type="button"
+                    className={styles.stepButton}
+                    onClick={() => onAdjust(point.date, -1, point.count)}
+                    disabled={point.count === 0}
+                    aria-label={`Retirer une cigarette du ${formatLongDate(point.date)}`}
+                  >
+                    −
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.stepButton}
+                    onClick={() => onAdjust(point.date, 1, point.count)}
+                    aria-label={`Ajouter une cigarette au ${formatLongDate(point.date)}`}
+                  >
+                    +
+                  </button>
                 </span>
               </li>
             );
@@ -49,6 +76,10 @@ export default function HistoryList({ series, goal, todayKey }: HistoryListProps
           pour commencer le suivi.
         </p>
       )}
+
+      <p className={styles.hint} aria-live="polite">
+        {pending ? "Enregistrement…" : ""}
+      </p>
     </section>
   );
 }

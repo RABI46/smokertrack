@@ -1,4 +1,10 @@
-import { parseBackup, readState, replaceState, toBackup } from "./localStore";
+import {
+  markExported,
+  parseBackup,
+  readState,
+  replaceState,
+  toBackup,
+} from "./localStore";
 import { dayKey } from "./date";
 import type { PersistedState } from "./localStore";
 
@@ -19,6 +25,9 @@ export function downloadBackup(now: Date = new Date()): void {
 
   // Laisse au navigateur le temps de démarrer le téléchargement.
   window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+
+  // Réarme le rappel de sauvegarde.
+  markExported(now);
 }
 
 /**

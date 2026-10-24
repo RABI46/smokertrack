@@ -54,6 +54,7 @@ export default function PrivacyPage() {
         <ul style={{ ...TEXT_STYLE, paddingLeft: 20, lineHeight: 1.7 }}>
           <li>Le nombre de cigarettes par jour et l&apos;heure de la dernière saisie.</li>
           <li>Votre objectif quotidien.</li>
+          <li>La date de votre dernier export de sauvegarde (pour afficher le rappel).</li>
         </ul>
         <p style={{ ...TEXT_STYLE, marginTop: 12 }}>
           Ces informations sont enregistrées dans le <code>localStorage</code> du navigateur,

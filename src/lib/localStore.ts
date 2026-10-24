@@ -14,6 +14,10 @@ import type { BackupFile, DailyLogStore, DayEntry, TrackerSnapshot } from "./typ
 const STORAGE_KEY = "smokertrack.v1";
 /** Clé de l'ancien « mode démo » : migrée automatiquement à la première lecture. */
 const LEGACY_KEY = "smokertrack.demo.v1";
+/** Métadonnées d'usage : dernière sauvegarde exportée. */
+const META_KEY = "smokertrack.meta.v1";
+/** Au-delà de ce délai, on rappelle à l'utilisateur d'exporter une sauvegarde. */
+export const BACKUP_REMINDER_DAYS = 14;
 
 export interface PersistedDay {
   count: number;
@@ -101,6 +105,47 @@ function writeState(state: PersistedState): void {
   listeners.forEach((listener) => listener(state));
 }
 
+export interface StoreMeta {
+  lastExportAt: string | null;
+}
+
+export function readMeta(): StoreMeta {
+  if (!hasStorage()) return { lastExportAt: null };
+  const raw = parseJson(window.localStorage.getItem(META_KEY));
+  if (typeof raw !== "object" || raw === null) return { lastExportAt: null };
+  const value = (raw as Partial<StoreMeta>).lastExportAt;
+  return { lastExportAt: typeof value === "string" ? value : null };
+}
+
+/** Enregistre la date du dernier export (appelé après un téléchargement réussi). */
+export function markExported(now: Date = new Date()): void {
+  if (!hasStorage()) return;
+  try {
+    window.localStorage.setItem(META_KEY, JSON.stringify({ lastExportAt: now.toISOString() }));
+  } catch {
+    // Sans importance : le rappel sera simplement réaffiché.
+  }
+}
+
+/**
+ * Faut-il rappeler d'exporter une sauvegarde ?
+ * Uniquement si des données existent (au moins une cigarette) et qu'aucun export
+ * n'a eu lieu dans les `BACKUP_REMINDER_DAYS` derniers jours.
+ */
+export function shouldRemindBackup(
+  state: PersistedState,
+  meta: StoreMeta,
+  now: Date = new Date(),
+): boolean {
+  const hasData = Object.values(state.days).some((day) => day.count > 0);
+  if (!hasData) return false;
+  if (!meta.lastExportAt) return true;
+  const last = new Date(meta.lastExportAt).getTime();
+  if (Number.isNaN(last)) return true;
+  const elapsedDays = (now.getTime() - last) / 86_400_000;
+  return elapsedDays >= BACKUP_REMINDER_DAYS;
+}
+
 /** Remplace l'intégralité de l'état (restauration d'une sauvegarde). */
 export function replaceState(state: PersistedState): void {
   writeState(sanitize(state));
@@ -117,12 +162,17 @@ export function toEntries(state: PersistedState, dayKeys: string[]): DayEntry[] 
   });
 }
 
-/** Écriture pure d'une journée, réutilisée par les tests. */
+/**
+ * Écriture pure d'une journée, réutilisée par les tests.
+ * `isToday = false` sert à corriger un jour passé : on ne modifie alors pas
+ * l'heure de la dernière cigarette (elle appartient au passé).
+ */
 export function applyIncrement(
   state: PersistedState,
   dayKey: string,
   delta: 1 | -1,
   now: Date,
+  isToday = true,
 ): PersistedState {
   const current = state.days[dayKey]?.count ?? 0;
   const nextCount = clampCount(current + delta);
@@ -135,7 +185,8 @@ export function applyIncrement(
       ...state.days,
       [dayKey]: {
         count: nextCount,
-        lastSmokedAt: isAdd ? now.toISOString() : (state.days[dayKey]?.lastSmokedAt ?? null),
+        lastSmokedAt:
+          isAdd && isToday ? now.toISOString() : (state.days[dayKey]?.lastSmokedAt ?? null),
       },
     },
   };
@@ -208,9 +259,9 @@ export function createLocalStore(): DailyLogStore {
       };
     },
 
-    async increment(dayKey, delta, currentCount): Promise<void> {
+    async increment(dayKey, delta, currentCount, isToday = true): Promise<void> {
       if (delta < 0 && currentCount <= 0) return;
-      writeState(applyIncrement(readState(), dayKey, delta, new Date()));
+      writeState(applyIncrement(readState(), dayKey, delta, new Date(), isToday));
     },
 
     async setGoal(goal): Promise<void> {

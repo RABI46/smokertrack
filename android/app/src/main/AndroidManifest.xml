@@ -59,9 +59,17 @@
     </application>
 
     <!--
-      Seule permission déclarée. Elle est imposée par le WebView Android (même
-      pour servir des fichiers locaux via le schéma https://localhost).
-      Aucune requête sortante n'est faite : l'application fonctionne en mode avion.
+      Deux permissions, toutes deux liées au fonctionnement local :
+
+      - INTERNET : imposée par le WebView Android (même pour servir des
+        fichiers locaux via le schéma https://localhost). Aucune requête
+        sortante n'est faite : l'application fonctionne en mode avion.
+      - SCHEDULE_EXACT_ALARM : permet au widget de déclencher la bascule du
+        compte à rebours (rouge → vert) à l'échéance près sur Android 12+.
+        L'application se rabat sur une alarme approximative si l'utilisateur
+        révoque l'autorisation (Paramètres → Alarmes et rappels), sans autre
+        conséquence qu'un retard de l'ordre de la minute.
     -->
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 </manifest>

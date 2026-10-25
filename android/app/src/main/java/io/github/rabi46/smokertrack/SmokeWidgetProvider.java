@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Build;
 import android.os.SystemClock;
 import android.text.format.DateFormat;
 import android.view.View;
@@ -225,12 +226,14 @@ public class SmokeWidgetProvider extends AppWidgetProvider {
 
     /**
      * Pose les deux alarmes utiles au widget :
-     * - l'échéance du compte à rebours, pour basculer en « en retard de … » ;
+     * - l'échéance du compte à rebours, pour basculer le texte en vert ;
      * - le passage à minuit, pour repartir de zéro sans ouvrir l'application.
      *
-     * `setAndAllowWhileIdle` fonctionne sans permission spéciale (contrairement
-     * aux alarmes exactes d'Android 12+), avec une précision de l'ordre de la
-     * minute : largement suffisant ici.
+     * Sur Android 12+ (API 31), l'alarme est exacte quand l'autorisation
+     * `SCHEDULE_EXACT_ALARM` est accordée : la bascule rouge → vert a lieu à
+     * l'échéance près, même en veille profonde. Sinon — ou avant Android 12 —
+     * on garde `setAndAllowWhileIdle`, sans permission spéciale, avec une
+     * précision de l'ordre de la minute : largement suffisante en secours.
      */
     private static void scheduleAlarms(Context context, long dueAt) {
         AlarmManager alarms = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
@@ -241,20 +244,21 @@ public class SmokeWidgetProvider extends AppWidgetProvider {
         long now = System.currentTimeMillis();
 
         if (dueAt > now) {
-            alarms.setAndAllowWhileIdle(
-                    AlarmManager.RTC,
-                    dueAt,
-                    alarmIntent(context, REQUEST_ALARM_DUE)
-            );
+            setAlarm(alarms, dueAt, alarmIntent(context, REQUEST_ALARM_DUE));
         } else {
             alarms.cancel(alarmIntent(context, REQUEST_ALARM_DUE));
         }
 
-        alarms.setAndAllowWhileIdle(
-                AlarmManager.RTC,
-                nextMidnight(now),
-                alarmIntent(context, REQUEST_ALARM_DAY)
-        );
+        setAlarm(alarms, nextMidnight(now), alarmIntent(context, REQUEST_ALARM_DAY));
+    }
+
+    /** Alarme exacte si l'appareil et l'utilisateur le permettent, sinon approximative. */
+    private static void setAlarm(AlarmManager alarms, long triggerAt, PendingIntent intent) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S && alarms.canScheduleExactAlarms()) {
+            alarms.setExactAndAllowWhileIdle(AlarmManager.RTC, triggerAt, intent);
+        } else {
+            alarms.setAndAllowWhileIdle(AlarmManager.RTC, triggerAt, intent);
+        }
     }
 
     private static PendingIntent alarmIntent(Context context, int requestCode) {

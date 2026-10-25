@@ -312,7 +312,7 @@ suivants, corrigés dans cette session.
 |---|---|---|---|
 | 7.4.1 | **Choix manuel du thème** (auto / clair / sombre) mémorisé en `localStorage` + bascule dans l'en-tête — ✅ implémenté (`ThemeSwitcher`, script anti-flash avant peinture) | Le thème suit uniquement la préférence système ; beaucoup d'utilisateurs veulent forcer le sombre le soir | 1 h |
 | 7.4.2 | **Tests E2E Playwright** sur 2 parcours critiques (raccourci `?action=add` puis rechargement ; import d'une sauvegarde corrompue) | Les tests unitaires ne couvrent pas l'URL ni le cycle de vie complet | 3 h |
-| 7.4.3 | **Export CSV** en plus du JSON | Ouvrir l'historique dans un tableur pour un suivi médical / un médecin | 1 h |
-| 7.4.4 | Widget : **alarme exacte à l'échéance** (`SCHEDULE_EXACT_ALARM`, Android 12+) avec repli `setAndAllowWhileIdle` | Aujourd'hui la bascule rouge → vert peut être en retard d'une minute en veille profonde | 1 h30 |
+| 7.4.3 | **Export CSV** en plus du JSON — ✅ implémenté (`buildCsv`/`downloadCsv`, bouton « Exporter en CSV », tests) | Ouvrir l'historique dans un tableur pour un suivi médical / un médecin | 1 h |
+| 7.4.4 | Widget : **alarme exacte à l'échéance** (`SCHEDULE_EXACT_ALARM`, Android 12+) avec repli `setAndAllowWhileIdle` — ✅ implémenté (`setAlarm()` garde `canScheduleExactAlarms()`) | Aujourd'hui la bascule rouge → vert peut être en retard d'une minute en veille profonde | 1 h30 |
 | 7.4.5 | **Statistiques dans le widget** (moyenne 7 j, série) sur les grands widgets | Le widget reste un compteur ; la tendance est la donnée la plus motivante | 2 h |
 | 7.4.6 | **i18n léger** (fr par défaut, en en option) | Lisibilité hors francophonie, sans dépendance | 3 h |

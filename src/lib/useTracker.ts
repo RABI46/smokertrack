@@ -17,7 +17,7 @@ import {
   shouldAutoBackup,
   shouldRemindBackup,
 } from "./localStore";
-import { downloadBackup, restoreBackup } from "./backup";
+import { downloadBackup, downloadCsv, restoreBackup } from "./backup";
 import { consumeWidgetAdditions, syncWidgetState } from "./widgetBridge";
 import type { TrackerSnapshot } from "./types";
 
@@ -49,6 +49,8 @@ export interface TrackerApi {
   updateGoal: (goal: number) => Promise<void>;
   eraseAll: () => Promise<void>;
   exportBackup: () => void;
+  /** Exporte l'historique au format CSV (tableur), sans toucher au rappel de sauvegarde. */
+  exportCsv: () => void;
   importBackup: (file: File) => Promise<void>;
 }
 
@@ -234,6 +236,15 @@ export function useTracker(): TrackerApi {
     }
   }, []);
 
+  const exportCsvNow = useCallback(() => {
+    try {
+      downloadCsv();
+      setError(null);
+    } catch (csvError) {
+      setError(csvError instanceof Error ? csvError.message : "Export CSV impossible.");
+    }
+  }, []);
+
   const importBackupFile = useCallback(
     (file: File) => withPending(() => restoreBackup(file)),
     [withPending],
@@ -263,6 +274,7 @@ export function useTracker(): TrackerApi {
     updateGoal,
     eraseAll,
     exportBackup: exportBackupNow,
+    exportCsv: exportCsvNow,
     importBackup: importBackupFile,
   };
 }

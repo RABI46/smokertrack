@@ -133,6 +133,7 @@ export default function TrackerApp() {
         onToggleAutoBackup={tracker.setAutoBackupEnabled}
         onEraseAll={handleErase}
         onExport={() => tracker.exportBackup()}
+        onExportCsv={() => tracker.exportCsv()}
         onImport={(file) => void tracker.importBackup(file)}
       />
 

@@ -6,7 +6,53 @@ import {
   toBackup,
 } from "./localStore";
 import { dayKey } from "./date";
+import { clampCount, clampGoal } from "./domain";
 import type { PersistedState } from "./localStore";
+
+/**
+ * Construit l'historique complet au format CSV, séparateur `;` (habitude des
+ * tableurs francophones) et BOM UTF-8 (Excel détecte l'encodage).
+ *
+ * Colonnes : `date`, `cigarettes`, `objectif` (objectif **courant** — le
+ * passé ne conserve pas d'historique de réglage), `dans_objectif`,
+ * `derniere_cigarette` (ISO 8601, vide si inconnue). Seuls les jours réellement
+ * suivis apparaissent, triés du plus ancien au plus récent.
+ *
+ * Contrairement à l'export JSON, ceci **ne** réarme **pas** le rappel de
+ * sauvegarde : le CSV est un usage, pas une sauvegarde restaurable.
+ */
+export function buildCsv(): string {
+  const state: PersistedState = readState();
+  const goal = clampGoal(state.goal);
+
+  const header = "date;cigarettes;objectif;dans_objectif;derniere_cigarette";
+  const rows = Object.entries(state.days)
+    .sort(([left], [right]) => (left < right ? -1 : left > right ? 1 : 0))
+    .map(([date, day]) => {
+      const count = clampCount(day.count);
+      const within = count <= goal ? "oui" : "non";
+      return [date, count, goal, within, day.lastSmokedAt ?? ""].join(";");
+    });
+
+  return `\uFEFF${[header, ...rows].join("\n")}\n`;
+}
+
+/** Télécharge l'historique au format CSV (`smokertrack-AAAA-MM-JJ.csv`). */
+export function downloadCsv(now: Date = new Date()): void {
+  if (typeof window === "undefined") return;
+
+  const blob = new Blob([buildCsv()], { type: "text/csv;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `smokertrack-${dayKey(now)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+
+  window.setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
 
 /**
  * Télécharge l'état courant au format JSON (`smokertrack-AAAA-MM-JJ.json`).

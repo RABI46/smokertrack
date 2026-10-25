@@ -70,7 +70,7 @@ Pour un dépôt public, gardez le keystore **hors du dépôt** (il est ignoré p
 | Identifiant | `io.github.rabi46.smokertrack` (ne plus changer : perte de données sinon) |
 | minSdk / targetSdk | 24 (Android 7.0) / 36 |
 | WebView | `https://localhost` (`androidScheme: https`) |
-| Permissions | `INTERNET` uniquement (imposée par le WebView ; l'app fonctionne en mode avion) |
+| Permissions | `INTERNET` (imposée par le WebView ; l'app fonctionne en mode avion) et `SCHEDULE_EXACT_ALARM` (bascule exacte du widget à l'échéance sur Android 12+, repli approximatif si révoquée) |
 | Thème | « Aurora Glass » sombre, splash « flamme », barre d'état `#070b17` |
 | Données | `localStorage` du WebView — même modèle local-first que la PWA |
 | Taille APK | ~4,2 Mo (l'export web pèse moins de 1 Mo) |
@@ -100,7 +100,7 @@ L'APK embarque un **vrai widget Android** (`AppWidgetProvider`), pas une simple 
 |---|---|
 | Affichage | Nombre de cigarettes du jour + objectif |
 | Heure de la dernière cigarette | `Dernière : 14:32`, ou « aucune cigarette aujourd'hui » |
-| Compte à rebours | Vers la prochaine cigarette, en **grand** ; **rouge** pendant le décompte puis **vert** dès qu'il atteint zéro, avec passage en « en retard de … » |
+| Compte à rebours | Vers la prochaine cigarette, en **grand** ; **rouge** pendant le décompte puis **vert** dès qu'il atteint zéro (alarme exacte à l'échéance, repli approximatif), avec passage en « en retard de … » |
 | Bouton **+ Une cigarette** | Enregistre une cigarette **sans ouvrir** l'application |
 | Toucher le compteur | Ouvre l'application |
 | Minuit | Le widget repart de zéro même si l'app n'a pas été ouverte |

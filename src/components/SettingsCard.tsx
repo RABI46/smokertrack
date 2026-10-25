@@ -13,6 +13,7 @@ interface SettingsCardProps {
   onToggleAutoBackup: (enabled: boolean) => void;
   onEraseAll: () => void;
   onExport: () => void;
+  onExportCsv: () => void;
   onImport: (file: File) => void;
 }
 
@@ -24,6 +25,7 @@ export default function SettingsCard({
   onToggleAutoBackup,
   onEraseAll,
   onExport,
+  onExportCsv,
   onImport,
 }: SettingsCardProps) {
   const fileInput = useRef<HTMLInputElement>(null);
@@ -121,6 +123,15 @@ export default function SettingsCard({
           disabled={pending}
         >
           Exporter mes données
+        </button>
+        <button
+          type="button"
+          className={`${styles.ghostButton} ${styles.smallButton}`}
+          onClick={onExportCsv}
+          disabled={pending}
+          title="Historique complet au format CSV, ouvrable dans un tableur"
+        >
+          Exporter en CSV
         </button>
         <button
           type="button"

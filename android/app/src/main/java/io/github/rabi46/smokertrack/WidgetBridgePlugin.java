@@ -29,13 +29,18 @@ public class WidgetBridgePlugin extends Plugin {
         Integer goal = call.getInt("goal", 10);
         // `0` (et non `null`) signale « aucune cigarette aujourd'hui ».
         Long lastSmokedAt = call.getLong("lastSmokedAt", 0L);
+        // Moyenne 7 jours × 10 et série en cours (poussées par `useTracker`).
+        Integer average7Tenths = call.getInt("average7Tenths", 0);
+        Integer streak = call.getInt("streak", 0);
 
         WidgetStorage.saveSnapshot(
                 getContext(),
                 todayKey,
                 count == null ? 0 : count,
                 goal == null ? 10 : goal,
-                lastSmokedAt == null ? 0L : lastSmokedAt
+                lastSmokedAt == null ? 0L : lastSmokedAt,
+                average7Tenths == null ? 0 : average7Tenths,
+                streak == null ? 0 : streak
         );
         SmokeWidgetProvider.refreshAll(getContext());
         call.resolve();

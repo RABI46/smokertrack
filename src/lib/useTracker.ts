@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_GOAL,
+  averageTracked,
   buildSeries,
   computeStats,
+  takeLast,
   type DailyStats,
   type SeriesPoint,
 } from "./domain";
@@ -17,7 +19,7 @@ import {
   shouldAutoBackup,
   shouldRemindBackup,
 } from "./localStore";
-import { downloadBackup, restoreBackup } from "./backup";
+import { downloadBackup, downloadCsv, restoreBackup } from "./backup";
 import { consumeWidgetAdditions, syncWidgetState } from "./widgetBridge";
 import type { TrackerSnapshot } from "./types";
 
@@ -49,6 +51,8 @@ export interface TrackerApi {
   updateGoal: (goal: number) => Promise<void>;
   eraseAll: () => Promise<void>;
   exportBackup: () => void;
+  /** Exporte l'historique au format CSV (tableur), sans toucher au rappel de sauvegarde. */
+  exportCsv: () => void;
   importBackup: (file: File) => Promise<void>;
 }
 
@@ -118,10 +122,11 @@ export function useTracker(): TrackerApi {
   // que l'application est en arrière-plan).
   const widgetMergeDone = useRef(false);
   useEffect(() => {
-    if (widgetMergeDone.current) return;
-    widgetMergeDone.current = true;
-
+    // La clé du jour est calculée à chaque fusion : après un passage à minuit,
+    // les cigarettes ajoutées depuis le widget doivent tomber sur le *nouveau*
+    // jour, et non sur celui en vigueur au montage.
     const merge = async () => {
+      const currentKey = dayKey();
       const { pending: pendingFromWidget, lastSmokedAt: widgetAt } =
         await consumeWidgetAdditions();
       if (pendingFromWidget <= 0) return;
@@ -129,18 +134,25 @@ export function useTracker(): TrackerApi {
       // On conserve l'heure réelle du widget (la cigarette a pu être fumée
       // plusieurs heures avant l'ouverture de l'application), sauf si elle
       // appartient déjà à la veille.
-      const at = widgetAt && dayKey(widgetAt) === todayKey ? widgetAt : undefined;
-      await store.increment(todayKey, pendingFromWidget, 0, true, at);
+      const at = widgetAt && dayKey(widgetAt) === currentKey ? widgetAt : undefined;
+      await store.increment(currentKey, pendingFromWidget, 0, true, at);
     };
 
-    void merge();
+    // Fusion initiale : une seule fois par vie de l'application.
+    if (!widgetMergeDone.current) {
+      widgetMergeDone.current = true;
+      void merge();
+    }
 
+    // Puis à chaque retour au premier plan — et ce, *y compris après minuit* :
+    // l'écouteur est réinstallé à chaque exécution de l'effet sans être
+    // conditionné au premier montage.
     const onVisible = () => {
       if (document.visibilityState === "visible") void merge();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
-  }, [store, todayKey]);
+  }, [store]);
 
   const lastSmokedAt = useMemo(() => {
     const dates = (snapshot?.entries ?? [])
@@ -157,8 +169,11 @@ export function useTracker(): TrackerApi {
     return today?.lastSmokedAt ?? null;
   }, [snapshot, todayKey]);
 
-  // Le widget affiche le compteur, l'heure de la dernière cigarette et le
-  // compte à rebours : on le tient à jour à chaque changement.
+  // Le widget affiche le compteur, l'heure de la dernière cigarette, le
+  // compte à rebours et deux statistiques (moyenne 7 jours, série en cours) :
+  // on le tient à jour à chaque changement.
+  const average7 = useMemo(() => averageTracked(takeLast(series, 7)), [series]);
+
   useEffect(() => {
     if (!snapshot) return;
     void syncWidgetState({
@@ -166,8 +181,10 @@ export function useTracker(): TrackerApi {
       count: stats.today,
       goal: stats.goal,
       lastSmokedAt: lastSmokedToday,
+      average7,
+      streak: stats.streak,
     });
-  }, [snapshot, todayKey, stats.today, stats.goal, lastSmokedToday]);
+  }, [snapshot, todayKey, stats.today, stats.goal, stats.streak, lastSmokedToday, average7]);
 
   const todayCount = stats.today;
 
@@ -226,6 +243,15 @@ export function useTracker(): TrackerApi {
     }
   }, []);
 
+  const exportCsvNow = useCallback(() => {
+    try {
+      downloadCsv();
+      setError(null);
+    } catch (csvError) {
+      setError(csvError instanceof Error ? csvError.message : "Export CSV impossible.");
+    }
+  }, []);
+
   const importBackupFile = useCallback(
     (file: File) => withPending(() => restoreBackup(file)),
     [withPending],
@@ -255,6 +281,7 @@ export function useTracker(): TrackerApi {
     updateGoal,
     eraseAll,
     exportBackup: exportBackupNow,
+    exportCsv: exportCsvNow,
     importBackup: importBackupFile,
   };
 }

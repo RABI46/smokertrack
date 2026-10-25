@@ -45,28 +45,68 @@ describe("widgetBridge", () => {
       lastSmokedAt: null,
     });
     await expect(
-      syncWidgetState({ todayKey: "2026-10-24", count: 3, goal: 10, lastSmokedAt: null }),
+      syncWidgetState({
+        todayKey: "2026-10-24",
+        count: 3,
+        goal: 10,
+        lastSmokedAt: null,
+        average7: 0,
+        streak: 0,
+      }),
     ).resolves.toBeUndefined();
   });
 
   it("pousse un résumé normalisé vers le widget", async () => {
     const bridge = installNativeBridge();
 
-    await syncWidgetState({ todayKey: "2026-10-24", count: 4.6, goal: 0, lastSmokedAt: null });
+    await syncWidgetState({
+      todayKey: "2026-10-24",
+      count: 4.6,
+      goal: 0,
+      lastSmokedAt: null,
+      average7: 3.2,
+      streak: 5,
+    });
 
     expect(bridge.sync).toHaveBeenCalledWith({
       todayKey: "2026-10-24",
       count: 5,
       goal: 1,
       lastSmokedAt: 0,
+      average7Tenths: 32,
+      streak: 5,
     });
+  });
+
+  it("borne la moyenne négative et arrondit la série", async () => {
+    const bridge = installNativeBridge();
+
+    await syncWidgetState({
+      todayKey: "2026-10-24",
+      count: 1,
+      goal: 10,
+      lastSmokedAt: null,
+      average7: -3,
+      streak: 2.6,
+    });
+
+    expect(bridge.sync).toHaveBeenCalledWith(
+      expect.objectContaining({ average7Tenths: 0, streak: 3 }),
+    );
   });
 
   it("transmet l'heure de la dernière cigarette en millisecondes", async () => {
     const bridge = installNativeBridge();
     const lastSmokedAt = new Date("2026-10-24T14:32:00.000Z");
 
-    await syncWidgetState({ todayKey: "2026-10-24", count: 2, goal: 10, lastSmokedAt });
+    await syncWidgetState({
+      todayKey: "2026-10-24",
+      count: 2,
+      goal: 10,
+      lastSmokedAt,
+      average7: 0,
+      streak: 0,
+    });
 
     // Le natif n'a pas de `null` : 0 signifie « aucune cigarette aujourd'hui ».
     expect(bridge.sync).toHaveBeenCalledWith(
@@ -82,6 +122,8 @@ describe("widgetBridge", () => {
       count: 0,
       goal: 10,
       lastSmokedAt: new Date(Number.NaN),
+      average7: 0,
+      streak: 0,
     });
 
     expect(bridge.sync).toHaveBeenCalledWith(
@@ -123,7 +165,14 @@ describe("widgetBridge", () => {
     bridge.consumePending.mockRejectedValueOnce(new Error("boom"));
 
     await expect(
-      syncWidgetState({ todayKey: "2026-10-24", count: 1, goal: 10, lastSmokedAt: null }),
+      syncWidgetState({
+        todayKey: "2026-10-24",
+        count: 1,
+        goal: 10,
+        lastSmokedAt: null,
+        average7: 0,
+        streak: 0,
+      }),
     ).resolves.toBeUndefined();
     await expect(consumeWidgetAdditions()).resolves.toEqual({
       pending: 0,

@@ -50,7 +50,14 @@ export default function CounterCard({
       </div>
 
       <div className={styles.counterRow}>
-        <span className={styles.counter} aria-live="polite" aria-atomic="true">
+        {/* Le `key` remonte le span à chaque incrémentation : l'animation
+            « pop » du compteur rejoue à chaque cigarette ajoutée. */}
+        <span
+          key={stats.today}
+          className={styles.counter}
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {stats.today}
         </span>
         <span className={styles.counterUnit}>

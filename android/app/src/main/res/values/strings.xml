@@ -12,6 +12,7 @@
     <string name="widget_label_next">Prochaine</string>
     <string name="widget_label_overdue">En retard de</string>
     <string name="widget_last_format">Dernière : %1$s</string>
+    <string name="widget_stats_format">Moy. 7 j : %1$s · Série : %2$d j</string>
     <string name="widget_no_smoke_today">Aucune cigarette aujourd\'hui</string>
     <string name="widget_add">+ Une cigarette</string>
     <string name="widget_hint_stale">Ouvrez l\'application pour actualiser</string>

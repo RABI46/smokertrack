@@ -31,7 +31,7 @@ const config: CapacitorConfig = {
       // La barre d'état ne recouvre pas le contenu (safe areas gérées en CSS).
       overlaysWebView: false,
       style: "DARK",
-      backgroundColor: "#0b1120",
+      backgroundColor: "#070b17",
     },
   },
 };

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_GOAL,
+  averageTracked,
   buildSeries,
   clampCount,
   countTracked,
@@ -212,6 +213,19 @@ describe("countTracked", () => {
 describe("sum ignore les jours non suivis", () => {
   it("additionne seulement les jours suivis", () => {
     expect(sum(mixedSeries([5, null, 3]))).toBe(8);
+  });
+});
+
+describe("averageTracked", () => {
+  it("moyenne les jours suivis uniquement, sur 1 décimale", () => {
+    expect(averageTracked(mixedSeries([5, null, 3]))).toBe(4);
+    expect(averageTracked(mixedSeries([1, 2, null, 6]))).toBe(3);
+    expect(averageTracked(series([1, 2]))).toBe(1.5);
+  });
+
+  it("vaut 0 sans aucun jour suivi", () => {
+    expect(averageTracked([])).toBe(0);
+    expect(averageTracked(mixedSeries([null, null]))).toBe(0);
   });
 });
 

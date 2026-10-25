@@ -51,14 +51,16 @@
             android:textSize="11sp" />
     </LinearLayout>
 
-    <!-- Prochaine cigarette : libellé + décompte vivant. -->
+    <!-- Prochaine cigarette : libellé + décompte vivant, en grand format.
+         Rouge tant que le compte tourne ; SmokeWidgetProvider bascule le texte
+         en vert dès que le compte atteint zéro (cf. `setTextColor` ci-contre). -->
     <LinearLayout
         android:id="@+id/widget_next_row"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:layout_marginTop="2dp">
+        android:layout_marginTop="6dp">
 
         <TextView
             android:id="@+id/widget_next_label"
@@ -66,18 +68,34 @@
             android:layout_height="wrap_content"
             android:text="@string/widget_label_next"
             android:textColor="#9AA8C2"
-            android:textSize="10sp" />
+            android:textSize="11sp"
+            android:textAllCaps="true"
+            android:letterSpacing="0.06" />
 
         <Chronometer
             android:id="@+id/widget_next"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="6dp"
+            android:layout_marginStart="10dp"
             android:format="%s"
-            android:textColor="#FB923C"
-            android:textSize="13sp"
-            android:textStyle="bold" />
+            android:textColor="#F87171"
+            android:textSize="21sp"
+            android:textStyle="bold"
+            android:includeFontPadding="false" />
     </LinearLayout>
+
+    <!-- Statistiques poussées par l'application : masquées tant que l'APK
+         n'a jamais synchronisé (mauvaise foi à l'installation). -->
+    <TextView
+        android:id="@+id/widget_stats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#9AA8C2"
+        android:textSize="10sp"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:visibility="gone" />
 
     <TextView
         android:id="@+id/widget_last"

@@ -22,6 +22,11 @@ final class WidgetStorage {
     private static final String KEY_LAST = "last_smoked_at";
     private static final String KEY_PENDING = "pending_add";
     private static final String KEY_SYNCED_AT = "synced_at";
+    /** Moyenne 7 jours × 10 (entier : 3,2 → 32). */
+    private static final String KEY_AVG7 = "avg7_tenths";
+    private static final String KEY_STREAK = "streak_days";
+    /** Vrai dès la première synchronisation depuis l'application. */
+    private static final String KEY_HAS_STATS = "has_stats";
 
     private WidgetStorage() {
     }
@@ -33,17 +38,44 @@ final class WidgetStorage {
     /**
      * Enregistre le résumé poussé par l'application web.
      * `lastSmokedAt = 0` signifie « aucune cigarette aujourd'hui » : JSON n'a
-     * pas de `null` transportable simplement vers Java.
+     * pas de `null` transportable simplement vers Java. `average7Tenths` vaut
+     * la moyenne 7 jours × 10 (3,2 → 32) ; `streak` la série en cours.
      */
-    static void saveSnapshot(Context context, String todayKey, int count, int goal, long lastSmokedAt) {
+    static void saveSnapshot(
+            Context context,
+            String todayKey,
+            int count,
+            int goal,
+            long lastSmokedAt,
+            int average7Tenths,
+            int streak
+    ) {
         prefs(context)
                 .edit()
                 .putString(KEY_TODAY, todayKey == null ? "" : todayKey)
                 .putInt(KEY_COUNT, Math.max(0, count))
                 .putInt(KEY_GOAL, Math.max(1, goal))
                 .putLong(KEY_LAST, Math.max(0L, lastSmokedAt))
+                .putInt(KEY_AVG7, Math.max(0, average7Tenths))
+                .putInt(KEY_STREAK, Math.max(0, streak))
+                .putBoolean(KEY_HAS_STATS, true)
                 .putLong(KEY_SYNCED_AT, System.currentTimeMillis())
                 .apply();
+    }
+
+    /** Moyenne 7 jours × 10 (0 avant la première synchronisation). */
+    static int average7Tenths(Context context) {
+        return prefs(context).getInt(KEY_AVG7, 0);
+    }
+
+    /** Série de jours consécutifs dans l'objectif. */
+    static int streak(Context context) {
+        return prefs(context).getInt(KEY_STREAK, 0);
+    }
+
+    /** Vrai dès que l'application a poussé au moins un résumé complet. */
+    static boolean hasStats(Context context) {
+        return prefs(context).getBoolean(KEY_HAS_STATS, false);
     }
 
     static String todayKey(Context context) {

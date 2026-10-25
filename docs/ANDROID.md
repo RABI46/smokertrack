@@ -101,6 +101,7 @@ L'APK embarque un **vrai widget Android** (`AppWidgetProvider`), pas une simple 
 | Affichage | Nombre de cigarettes du jour + objectif |
 | Heure de la dernière cigarette | `Dernière : 14:32`, ou « aucune cigarette aujourd'hui » |
 | Compte à rebours | Vers la prochaine cigarette, en **grand** ; **rouge** pendant le décompte puis **vert** dès qu'il atteint zéro (alarme exacte à l'échéance, repli approximatif), avec passage en « en retard de … » |
+| Statistiques | Moyenne sur 7 jours + série en cours (poussées à chaque ouverture de l'application) |
 | Bouton **+ Une cigarette** | Enregistre une cigarette **sans ouvrir** l'application |
 | Toucher le compteur | Ouvre l'application |
 | Minuit | Le widget repart de zéro même si l'app n'a pas été ouverte |

@@ -158,6 +158,17 @@ export function countTracked(series: SeriesPoint[]): number {
   return series.filter((point) => point.tracked).length;
 }
 
+/**
+ * Moyenne quotidienne des jours **suivis** d'une série, arrêtée à 1 décimale
+ * (0 si aucun jour suivi). Source unique pour les tendances affichées et pour
+ * les statistiques poussées vers le widget Android.
+ */
+export function averageTracked(series: SeriesPoint[]): number {
+  const tracked = countTracked(series);
+  if (tracked === 0) return 0;
+  return Math.round((sum(series) / tracked) * 10) / 10;
+}
+
 /** Tranche les `count` derniers points d'une série. */
 export function takeLast(series: SeriesPoint[], count: number): SeriesPoint[] {
   if (count <= 0) return [];

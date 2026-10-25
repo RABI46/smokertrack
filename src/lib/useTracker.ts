@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   DEFAULT_GOAL,
+  averageTracked,
   buildSeries,
   computeStats,
+  takeLast,
   type DailyStats,
   type SeriesPoint,
 } from "./domain";
@@ -167,8 +169,11 @@ export function useTracker(): TrackerApi {
     return today?.lastSmokedAt ?? null;
   }, [snapshot, todayKey]);
 
-  // Le widget affiche le compteur, l'heure de la dernière cigarette et le
-  // compte à rebours : on le tient à jour à chaque changement.
+  // Le widget affiche le compteur, l'heure de la dernière cigarette, le
+  // compte à rebours et deux statistiques (moyenne 7 jours, série en cours) :
+  // on le tient à jour à chaque changement.
+  const average7 = useMemo(() => averageTracked(takeLast(series, 7)), [series]);
+
   useEffect(() => {
     if (!snapshot) return;
     void syncWidgetState({
@@ -176,8 +181,10 @@ export function useTracker(): TrackerApi {
       count: stats.today,
       goal: stats.goal,
       lastSmokedAt: lastSmokedToday,
+      average7,
+      streak: stats.streak,
     });
-  }, [snapshot, todayKey, stats.today, stats.goal, lastSmokedToday]);
+  }, [snapshot, todayKey, stats.today, stats.goal, stats.streak, lastSmokedToday, average7]);
 
   const todayCount = stats.today;
 

@@ -84,6 +84,19 @@
             android:includeFontPadding="false" />
     </LinearLayout>
 
+    <!-- Statistiques poussées par l'application : masquées tant que l'APK
+         n'a jamais synchronisé (mauvaise foi à l'installation). -->
+    <TextView
+        android:id="@+id/widget_stats"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textColor="#9AA8C2"
+        android:textSize="10sp"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/widget_last"
         android:layout_width="match_parent"

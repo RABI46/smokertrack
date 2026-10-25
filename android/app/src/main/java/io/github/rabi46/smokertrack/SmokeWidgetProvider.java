@@ -147,6 +147,23 @@ public class SmokeWidgetProvider extends AppWidgetProvider {
         views.setTextViewText(R.id.widget_count, String.valueOf(count));
         views.setTextViewText(R.id.widget_goal, context.getString(R.string.widget_goal_format, goal));
 
+        // Statistiques (moyenne 7 j + série) : visibles dès la première
+        // synchronisation depuis l'application, masquées avant.
+        if (WidgetStorage.hasStats(context)) {
+            views.setViewVisibility(R.id.widget_stats, View.VISIBLE);
+            String average = String.format(
+                    Locale.FRANCE,
+                    "%.1f",
+                    WidgetStorage.average7Tenths(context) / 10.0
+            );
+            views.setTextViewText(
+                    R.id.widget_stats,
+                    context.getString(R.string.widget_stats_format, average, WidgetStorage.streak(context))
+            );
+        } else {
+            views.setViewVisibility(R.id.widget_stats, View.GONE);
+        }
+
         long dueAt = 0L;
         if (lastSmokedAt > 0L) {
             dueAt = lastSmokedAt + spacingMs(goal);

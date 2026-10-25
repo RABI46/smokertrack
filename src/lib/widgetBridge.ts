@@ -18,6 +18,10 @@ export interface WidgetSnapshotInput {
    * rebours de la suivante.
    */
   lastSmokedAt: Date | null;
+  /** Moyenne quotidienne sur les 7 derniers jours suivis. */
+  average7: number;
+  /** Série de jours consécutifs dans l'objectif. */
+  streak: number;
 }
 
 /** Charge utile réellement envoyée au natif (les dates passent en millisecondes). */
@@ -27,6 +31,9 @@ interface NativeSnapshot {
   goal: number;
   /** `0` signifie « aucune cigarette aujourd'hui » (JSON n'a pas de `null` sûr). */
   lastSmokedAt: number;
+  /** Moyenne × 10 : entier sans ambiguïté entre JS et Java (3,2 → 32). */
+  average7Tenths: number;
+  streak: number;
 }
 
 interface WidgetBridgePlugin {
@@ -64,12 +71,16 @@ function plugin(): WidgetBridgePlugin | null {
   return capacitor()?.Plugins?.WidgetBridge ?? null;
 }
 
-/** Pousse le compteur du jour vers le widget. Silencieux en cas d'échec. */
+/** Pousse le résumé du jour vers le widget. Silencieux en cas d'échec. */
 export async function syncWidgetState(input: WidgetSnapshotInput): Promise<void> {
   const bridge = plugin();
   if (!bridge) return;
 
   const lastSmokedAt = input.lastSmokedAt?.getTime() ?? 0;
+  const average7Tenths = Number.isFinite(input.average7)
+    ? Math.max(0, Math.round(input.average7 * 10))
+    : 0;
+  const streak = Number.isFinite(input.streak) ? Math.max(0, Math.round(input.streak)) : 0;
 
   try {
     await bridge.sync({
@@ -77,6 +88,8 @@ export async function syncWidgetState(input: WidgetSnapshotInput): Promise<void>
       count: Math.max(0, Math.round(input.count)),
       goal: Math.max(1, Math.round(input.goal)),
       lastSmokedAt: Number.isFinite(lastSmokedAt) && lastSmokedAt > 0 ? Math.floor(lastSmokedAt) : 0,
+      average7Tenths,
+      streak,
     });
   } catch {
     // Le widget gardera sa dernière valeur : aucune action utilisateur requise.

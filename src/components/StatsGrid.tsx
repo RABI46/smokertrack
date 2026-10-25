@@ -1,6 +1,6 @@
 "use client";
 
-import { countTracked, sum, takeLast, takePrevious, trendPercent } from "@/lib/domain";
+import { averageTracked, takeLast, takePrevious, trendPercent, countTracked, sum } from "@/lib/domain";
 import type { DailyStats, SeriesPoint } from "@/lib/domain";
 import styles from "./tracker.module.css";
 
@@ -30,8 +30,7 @@ export default function StatsGrid({ series, stats }: StatsGridProps) {
   const lastSevenTotal = sum(lastSeven);
   const previousSevenTotal = sum(previousSeven);
   const lastSevenTracked = countTracked(lastSeven);
-  const lastSevenAverage =
-    lastSevenTracked > 0 ? Math.round((lastSevenTotal / lastSevenTracked) * 10) / 10 : 0;
+  const lastSevenAverage = averageTracked(lastSeven);
 
   const nothingTracked = stats.trackedDays === 0;
 

@@ -1,7 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android"
-    android:shape="rectangle">
-    <solid android:color="#0B1120" />
-    <corners android:radius="20dp" />
-    <stroke android:width="1dp" android:color="#26334D" />
-</shape>
+<!--
+  Fond « liquid glass » du widget : verre teinté translucide (le fond d'écran
+  transparaît), liseré lumineux et reflet supérieur qui simule la réflexion
+  d'une surface en verre. `android:height` sur une couche exige l'API 23+
+  (minSdk 24).
+-->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Verre : dégradé sombre translucide + contour clair. -->
+    <item>
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#B30A101F"
+                android:centerColor="#99111A2E"
+                android:endColor="#CC070B17" />
+            <corners android:radius="24dp" />
+            <stroke
+                android:width="1dp"
+                android:color="#4DFFFFFF" />
+        </shape>
+    </item>
+
+    <!-- Reflet supérieur (sheen) : bandeau blanc qui s'estompe vers le bas. -->
+    <item
+        android:height="64dp"
+        android:gravity="top">
+        <shape android:shape="rectangle">
+            <gradient
+                android:angle="270"
+                android:startColor="#33FFFFFF"
+                android:centerColor="#14FFFFFF"
+                android:endColor="#00FFFFFF" />
+            <corners android:radius="24dp" />
+        </shape>
+    </item>
+</layer-list>

@@ -244,3 +244,69 @@ d'événements rend la synchro plus propre, avec des `id` stables et une fusion 
 
 Les étapes 1 à 3 (≈ 8 h) suffisent à faire passer l'application de « prototype crédible » à
 « outil qu'on ouvre tous les jours ». L'étape 4 est le vrai saut qualitatif.
+
+---
+
+## 7. Mise à jour du 25 octobre 2026 — audit complet, corrections et refonte visuelle
+
+### 7.1 État de vérification (tout est vert)
+
+| Contrôle | Résultat |
+|---|---|
+| `tsc --noEmit` | ✅ 0 erreur |
+| `next lint` | ✅ 0 avertissement |
+| `vitest run` | ✅ 116 tests / 7 fichiers |
+| `next build` | ✅ export statique, 6 pages |
+| CI Pages & Android | ✅ déjà sur Node `22.x` (le point « Node 20 déprécié » de §4 est soldé) |
+
+Aucun bug bloquant en l'état ; la revue de code a toutefois relevé les trois défauts
+suivants, corrigés dans cette session.
+
+### 7.2 Bugs trouvés et corrigés
+
+1. **Ajouts du widget perdus après minuit** (`src/lib/useTracker.ts`).
+   L'écouteur `visibilitychange` responsable de la fusion des cigarettes ajoutées
+   depuis le widget n'était réinstallé qu'au premier montage ; dès que la clé du
+   jour changeait (minuit), l'effet se ré-exécutait et s’arrêtait aussitôt, donc
+   plus aucune fusion au retour au premier plan jusqu'au rechargement — et la
+   fusion utilisait en plus la clé de la veille. Corrigé : clé du jour calculée à
+   chaque fusion, écouteur installé à chaque exécution de l'effet.
+2. **Bandeau « sauvegarde » illisible en thème clair** (`tracker.module.css`).
+   Le texte ambre `#fcd34d` était écrasé en dur : sur fond blanc il passait sous
+   le seuil de contraste AA. Remplacé par la variable thématisée `--warning`
+   (`#b45309` en clair, `#fbbf24` en sombre).
+3. **Compte à rebours figé au retour en arrière-plan** (`NextCigarette.tsx`).
+   Les minuteurs sont throttlés par le navigateur : après un passage en onglet
+   arrière-plan ou une sortie de veille, le décompte pouvait afficher une valeur
+   périmée jusqu'à la prochaine seconde. Un rafraîchissement immédiat sur
+   `visibilitychange` a été ajouté (et l'effet de fusion du widget a été
+   par la même occasion débarrassé de sa dépendance à la clé du jour).
+
+### 7.3 Refonte visuelle livrée
+
+- **Thème « Aurora Glass »** (web) : nouvelle palette indigo profond + sarcelle →
+  cyan (mode clair assorti), fond d'aurore animé (deux halos en dérive lente),
+  cartes givrées translucides (`backdrop-filter`), filet de lumière au survol des
+  boutons primaires, barre de progression avec brillant balayé, entrées en scène
+  décalées des blocs, pop du compteur à chaque ajout, barres du graphique qui se
+  déploient, scrollbars et sélection thématisées. Respect strict de
+  `prefers-reduced-motion`.
+- **Widget Android en liquid glass** : fond verre teinté translucide (le fond
+  d'écran transparaît), liseré lumineux, reflet supérieur, bouton « +1 » sarcelle
+  vitré.
+- **Compte à rebours agrandi et bicolore**, web **et** widget : en rouge pendant
+  tout le décompte (avec respiration/clignotant sur le web), bascule en **vert
+  dès qu'il atteint zéro**, avec flash de célébration côté web ; côté widget
+  l'alarme d'échéance bascule le Chronometer en vert (`setTextColor`), le texte
+  passe de 13 à 21 sp.
+
+### 7.4 Nouvelles propositions (non couvertes par §2 à §4)
+
+| # | Proposition | Pourquoi | Effort |
+|---|---|---|---|
+| 7.4.1 | **Choix manuel du thème** (auto / clair / sombre) mémorisé en `localStorage` + bascule dans l'en-tête | Le thème suit uniquement la préférence système ; beaucoup d'utilisateurs veulent forcer le sombre le soir | 1 h |
+| 7.4.2 | **Tests E2E Playwright** sur 2 parcours critiques (raccourci `?action=add` puis rechargement ; import d'une sauvegarde corrompue) | Les tests unitaires ne couvrent pas l'URL ni le cycle de vie complet | 3 h |
+| 7.4.3 | **Export CSV** en plus du JSON | Ouvrir l'historique dans un tableur pour un suivi médical / un médecin | 1 h |
+| 7.4.4 | Widget : **alarme exacte à l'échéance** (`SCHEDULE_EXACT_ALARM`, Android 12+) avec repli `setAndAllowWhileIdle` | Aujourd'hui la bascule rouge → vert peut être en retard d'une minute en veille profonde | 1 h30 |
+| 7.4.5 | **Statistiques dans le widget** (moyenne 7 j, série) sur les grands widgets | Le widget reste un compteur ; la tendance est la donnée la plus motivante | 2 h |
+| 7.4.6 | **i18n léger** (fr par défaut, en en option) | Lisibilité hors francophonie, sans dépendance | 3 h |

@@ -7,6 +7,53 @@
   gap: 20px;
 }
 
+/* Entrée en scène progressive des blocs (décalée par position). */
+.shell > * {
+  animation: riseIn 0.55s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.shell > *:nth-child(1) {
+  animation-delay: 0.02s;
+}
+.shell > *:nth-child(2) {
+  animation-delay: 0.07s;
+}
+.shell > *:nth-child(3) {
+  animation-delay: 0.12s;
+}
+.shell > *:nth-child(4) {
+  animation-delay: 0.17s;
+}
+.shell > *:nth-child(5) {
+  animation-delay: 0.22s;
+}
+.shell > *:nth-child(6) {
+  animation-delay: 0.27s;
+}
+.shell > *:nth-child(7) {
+  animation-delay: 0.32s;
+}
+.shell > *:nth-child(8) {
+  animation-delay: 0.37s;
+}
+.shell > *:nth-child(9) {
+  animation-delay: 0.42s;
+}
+.shell > *:nth-child(n + 10) {
+  animation-delay: 0.47s;
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -24,13 +71,24 @@
 .logo {
   display: grid;
   place-items: center;
-  width: 44px;
-  height: 44px;
-  border-radius: 14px;
-  background: linear-gradient(160deg, var(--accent), var(--accent-strong));
-  color: #fff;
-  box-shadow: 0 8px 20px rgba(234, 88, 12, 0.35);
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  background: linear-gradient(150deg, var(--accent), var(--accent-2));
+  color: var(--on-accent);
+  box-shadow: var(--shadow-glow);
   flex: none;
+  animation: logoGlow 4.5s ease-in-out infinite;
+}
+
+@keyframes logoGlow {
+  0%,
+  100% {
+    box-shadow: 0 10px 26px -10px rgba(45, 212, 191, 0.45);
+  }
+  50% {
+    box-shadow: 0 14px 34px -8px rgba(56, 189, 248, 0.6);
+  }
 }
 
 .brandText {
@@ -41,9 +99,13 @@
 
 .brandTitle {
   margin: 0;
-  font-size: 1.15rem;
+  font-size: 1.18rem;
   font-weight: 700;
   letter-spacing: -0.01em;
+  background: linear-gradient(100deg, var(--text) 30%, var(--accent-strong));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .brandSubtitle {
@@ -57,8 +119,10 @@
   gap: 6px;
   padding: 6px 12px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-tint);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: var(--text-muted);
   font-size: 0.78rem;
   font-weight: 600;
@@ -84,11 +148,20 @@
   background: var(--bg-soft);
   font-size: 1rem;
   line-height: 1;
-  border-radius: 8px;
+  border-radius: 9px;
 }
 
 .listControls .stepButton:hover:not(:disabled) {
   background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+/* Le toast du raccourci ?action=add est rendu dans le shell : il garde sa
+   propre animation (définie après celle d'entrée pour gagner la cascade). */
+.shell > .toast {
+  animation: toastIn 240ms ease;
 }
 
 .toast {
@@ -99,13 +172,14 @@
   z-index: 20;
   padding: 12px 18px;
   border-radius: 999px;
-  border: 1px solid var(--border);
+  border: 1px solid var(--glass-border);
   background: var(--surface);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
   color: var(--text);
-  box-shadow: var(--shadow);
+  box-shadow: var(--shadow-glow);
   font-size: 0.86rem;
   font-weight: 600;
-  animation: toastIn 200ms ease;
 }
 
 @keyframes toastIn {
@@ -121,10 +195,15 @@
 
 .helpBlock {
   border: 1px solid var(--border);
-  border-radius: 12px;
-  background: var(--bg-soft);
+  border-radius: 14px;
+  background: var(--glass-tint);
   padding: 12px 14px;
   margin-top: 10px;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.helpBlock:hover {
+  border-color: var(--border-strong);
 }
 
 .helpSummary {
@@ -149,6 +228,10 @@
 .helpList code {
   font-size: 0.8rem;
   word-break: break-all;
+  background: var(--glass-tint);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 1px 5px;
 }
 
 .goalRow {
@@ -163,13 +246,19 @@
   width: 64px;
   height: 38px;
   border: 1px solid var(--border);
-  border-radius: 9px;
+  border-radius: 10px;
   background: var(--surface);
   color: var(--text);
   font: inherit;
   font-weight: 800;
   font-variant-numeric: tabular-nums;
   text-align: center;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.goalInput:focus-visible {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
 }
 
 .goalInput::-webkit-outer-spin-button,
@@ -204,19 +293,33 @@
   margin-top: 14px;
 }
 
+/* Cartes givrées : translucides, elles laissent transparaître l'aurore. */
 .card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  backdrop-filter: blur(16px) saturate(1.3);
+  -webkit-backdrop-filter: blur(16px) saturate(1.3);
+  border: 1px solid var(--glass-border);
   border-radius: var(--radius);
   padding: clamp(18px, 3vw, 26px);
   box-shadow: var(--shadow);
+  transition: transform 220ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 220ms ease,
+    border-color 220ms ease;
+}
+
+@media (hover: hover) {
+  .card:hover {
+    transform: translateY(-3px);
+    border-color: var(--border-strong);
+    box-shadow: var(--shadow), 0 0 0 1px rgba(45, 212, 191, 0.1),
+      0 18px 40px -22px rgba(45, 212, 191, 0.35);
+  }
 }
 
 .hero {
   display: grid;
   gap: 18px;
   background:
-    radial-gradient(600px 200px at 100% 0%, var(--accent-soft), transparent 70%),
+    radial-gradient(600px 220px at 100% 0%, var(--accent-soft), transparent 70%),
     var(--surface);
 }
 
@@ -234,7 +337,7 @@
   letter-spacing: 0.12em;
   font-size: 0.72rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: var(--accent-strong);
 }
 
 .dayLabel {
@@ -256,6 +359,22 @@
   line-height: 0.9;
   letter-spacing: -0.04em;
   font-variant-numeric: tabular-nums;
+  background: linear-gradient(160deg, var(--text) 35%, var(--accent-strong));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: counterPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes counterPop {
+  0% {
+    transform: scale(0.86);
+    opacity: 0.6;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .counterUnit {
@@ -266,13 +385,18 @@
 
 .counterGoal {
   margin-left: auto;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-tint);
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
 }
 
 .progressTrack {
-  height: 10px;
+  position: relative;
+  height: 12px;
   border-radius: 999px;
   background: var(--bg-soft);
   border: 1px solid var(--border);
@@ -280,14 +404,41 @@
 }
 
 .progressFill {
+  position: relative;
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, var(--accent), var(--accent-strong));
-  transition: width 320ms ease;
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  transition: width 360ms cubic-bezier(0.22, 1, 0.36, 1);
+  overflow: hidden;
+}
+
+/* Brillant qui balaie la barre en continu. */
+.progressFill::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 25%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 75%
+  );
+  transform: translateX(-100%);
+  animation: progressSweep 2.8s ease-in-out infinite;
+}
+
+@keyframes progressSweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
 }
 
 .progressFillOver {
-  background: linear-gradient(90deg, #ef4444, #f87171);
+  background: linear-gradient(90deg, var(--danger), #fda4af);
 }
 
 .hint {
@@ -303,6 +454,8 @@
 }
 
 .primaryButton {
+  position: relative;
+  overflow: hidden;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -311,25 +464,46 @@
   padding: 0 22px;
   border: 0;
   border-radius: 16px;
-  background: linear-gradient(160deg, var(--accent), var(--accent-strong));
-  color: #fff;
+  background: linear-gradient(150deg, var(--accent), var(--accent-2));
+  color: var(--on-accent);
   font-size: 1.02rem;
   font-weight: 700;
   cursor: pointer;
-  box-shadow: 0 12px 26px rgba(234, 88, 12, 0.32);
-  transition: transform 120ms ease, filter 120ms ease;
+  box-shadow: var(--shadow-glow);
+  transition: transform 140ms ease, filter 140ms ease, box-shadow 140ms ease;
+}
+
+/* Filet de lumière qui traverse le bouton au survol. */
+.primaryButton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    rgba(255, 255, 255, 0.4) 50%,
+    transparent 70%
+  );
+  transform: translateX(-130%);
+  transition: transform 0.65s ease;
+  pointer-events: none;
+}
+
+.primaryButton:hover:not(:disabled)::after {
+  transform: translateX(130%);
 }
 
 .primaryButton:hover:not(:disabled) {
-  filter: brightness(1.06);
+  filter: brightness(1.05) saturate(1.05);
+  box-shadow: 0 18px 40px -10px rgba(45, 212, 191, 0.55);
 }
 
 .primaryButton:active:not(:disabled) {
-  transform: translateY(1px) scale(0.995);
+  transform: translateY(1px) scale(0.99);
 }
 
 .primaryButton:disabled {
-  opacity: 0.6;
+  opacity: 0.55;
   cursor: not-allowed;
 }
 
@@ -341,17 +515,27 @@
   min-height: 56px;
   padding: 0 18px;
   border-radius: 16px;
-  border: 1px solid var(--border);
-  background: var(--bg-soft);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-tint);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
   color: var(--text);
   font-size: 0.95rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background 120ms ease;
+  transition: background 160ms ease, border-color 160ms ease, transform 160ms ease,
+    color 160ms ease;
 }
 
 .ghostButton:hover:not(:disabled) {
   background: var(--surface-hover);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  transform: translateY(-1px);
+}
+
+.ghostButton:active:not(:disabled) {
+  transform: translateY(0);
 }
 
 .ghostButton:disabled {
@@ -368,11 +552,13 @@
 
 .dangerButton {
   color: var(--danger);
-  border-color: rgba(248, 113, 113, 0.4);
+  border-color: rgba(251, 113, 133, 0.4);
 }
 
 .dangerButton:hover:not(:disabled) {
-  background: rgba(248, 113, 113, 0.12);
+  background: rgba(251, 113, 133, 0.12);
+  border-color: var(--danger);
+  color: var(--danger);
 }
 
 .sectionTitle {
@@ -395,13 +581,22 @@
 }
 
 .stat {
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  background: var(--bg-soft);
+  border: 1px solid var(--glass-border);
+  border-radius: 16px;
+  background: var(--glass-tint);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  transition: transform 200ms ease, border-color 200ms ease, background 200ms ease;
+}
+
+@media (hover: hover) {
+  .stat:hover {
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    background: var(--surface-hover);
+  }
 }
 
 .statLabel {
@@ -469,8 +664,21 @@
   width: 68%;
   min-height: 4px;
   border-radius: 8px 8px 4px 4px;
-  background: linear-gradient(180deg, var(--accent-strong), var(--accent));
+  background: linear-gradient(180deg, var(--accent-2), var(--accent));
+  transform-origin: bottom;
+  animation: barRise 0.65s cubic-bezier(0.22, 1, 0.36, 1) both;
   transition: height 320ms ease;
+}
+
+@keyframes barRise {
+  from {
+    transform: scaleY(0);
+    opacity: 0.4;
+  }
+  to {
+    transform: scaleY(1);
+    opacity: 1;
+  }
 }
 
 .chartBarOk {
@@ -528,9 +736,15 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 11px 4px;
+  padding: 11px 6px;
   border-bottom: 1px solid var(--border);
+  border-radius: 10px;
   font-size: 0.9rem;
+  transition: background 160ms ease;
+}
+
+.listRow:hover {
+  background: var(--glass-tint);
 }
 
 .listRow:last-child {
@@ -553,12 +767,12 @@
   font-size: 0.7rem;
   font-weight: 700;
   color: var(--success);
-  background: rgba(52, 211, 153, 0.14);
+  background: rgba(74, 222, 128, 0.14);
 }
 
 .pillOver {
   color: var(--danger);
-  background: rgba(248, 113, 113, 0.14);
+  background: rgba(251, 113, 133, 0.14);
 }
 
 .settingsRow {
@@ -574,7 +788,7 @@
   align-items: center;
   gap: 2px;
   border: 1px solid var(--border);
-  border-radius: 12px;
+  border-radius: 14px;
   background: var(--bg-soft);
   padding: 4px;
 }
@@ -583,16 +797,19 @@
   width: 38px;
   height: 38px;
   border: 0;
-  border-radius: 9px;
+  border-radius: 10px;
   background: transparent;
   color: var(--text);
   font-size: 1.1rem;
   font-weight: 700;
   cursor: pointer;
+  transition: background 140ms ease, color 140ms ease, transform 140ms ease;
 }
 
 .stepButton:hover:not(:disabled) {
-  background: var(--surface-hover);
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  transform: translateY(-1px);
 }
 
 .stepButton:disabled {
@@ -612,21 +829,38 @@
   align-items: flex-start;
   gap: 10px;
   padding: 14px 16px;
-  border-radius: 14px;
+  border-radius: 16px;
   font-size: 0.87rem;
   border: 1px solid;
+  animation: bannerIn 300ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+@keyframes bannerIn {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* `--warning` est thématisé : lisible en mode clair comme en mode sombre. */
 .bannerInfo {
   border-color: rgba(251, 191, 36, 0.4);
   background: rgba(251, 191, 36, 0.1);
-  color: #fcd34d;
+  color: var(--warning);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .bannerError {
-  border-color: rgba(248, 113, 113, 0.4);
-  background: rgba(248, 113, 113, 0.1);
+  border-color: rgba(251, 113, 133, 0.4);
+  background: rgba(251, 113, 133, 0.1);
   color: var(--danger);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
 }
 
 .footer {
@@ -640,7 +874,7 @@
 }
 
 .skeleton {
-  border-radius: 12px;
+  border-radius: 14px;
   background: linear-gradient(90deg, var(--bg-soft), var(--surface-hover), var(--bg-soft));
   background-size: 200% 100%;
   animation: shimmer 1.4s ease-in-out infinite;
@@ -679,42 +913,140 @@
   }
 }
 
-/* Compte à rebours « prochaine cigarette » */
+/* ------------------------------------------------------------------------- *
+ * Compte à rebours « prochaine cigarette » — grand format.
+ *
+ * Rouge tant que le décompte tourne (« patientez »), puis vert dès qu'il
+ * atteint zéro (« créneau atteint »), avec un flash de célébration.
+ * ------------------------------------------------------------------------- */
 .nextRow {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-wrap: wrap;
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "label meta"
+    "time time";
+  gap: 6px 12px;
   margin: 0;
-  padding: 10px 12px;
-  border-radius: 12px;
-  background: var(--bg-soft);
-  border: 1px solid var(--border);
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: linear-gradient(150deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.015));
+  border: 1px solid var(--glass-border);
+  overflow: hidden;
+}
+
+.nextRow > * {
+  position: relative;
+}
+
+/* Lavis d'accent en haut à droite. */
+.nextRow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(260px 100px at 100% 0%, var(--accent-soft), transparent 70%);
+  pointer-events: none;
 }
 
 .nextLabel {
+  grid-area: label;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.78rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--text-muted);
 }
 
-.nextValue {
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--accent-strong);
+/* Pastille d'état : clignotante pendant le décompte, stable en vert. */
+.nextLabel::before {
+  content: "";
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--danger);
+  box-shadow: 0 0 10px var(--danger);
+  animation: dotBlink 1.2s ease-in-out infinite;
+}
+
+.nextRowDue .nextLabel::before {
+  background: var(--success);
+  box-shadow: 0 0 12px var(--success);
+  animation: dotBlink 2.4s ease-in-out infinite;
+}
+
+/* Sans cigarette du jour : pastille neutre, ni alerte ni échéance. */
+.nextRowIdle .nextLabel::before {
+  background: var(--border-strong);
+  box-shadow: none;
+  animation: none;
+}
+
+@keyframes dotBlink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.nextCountdown {
+  grid-area: time;
+  justify-self: start;
+  font-size: clamp(1.9rem, 8vw, 2.7rem);
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 
-.nextOverdue {
-  font-size: 1rem;
-  font-weight: 700;
+/* En attente : rouge, respiration lente. */
+.nextValue {
   color: var(--danger);
-  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 26px rgba(251, 113, 133, 0.45);
+  animation: breatheDanger 3s ease-in-out infinite;
+}
+
+@keyframes breatheDanger {
+  0%,
+  100% {
+    text-shadow: 0 0 18px rgba(251, 113, 133, 0.3);
+  }
+  50% {
+    text-shadow: 0 0 34px rgba(251, 113, 133, 0.55);
+  }
+}
+
+/* Zéro atteint : vert, flash de célébration puis halo stable. */
+.nextOverdue {
+  color: var(--success);
+  text-shadow: 0 0 30px rgba(74, 222, 128, 0.5);
+  animation: flashDue 0.7s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes flashDue {
+  0% {
+    transform: scale(0.72);
+    opacity: 0.4;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 .nextMeta {
+  grid-area: meta;
+  align-self: center;
   font-size: 0.8rem;
   color: var(--text-muted);
-  margin-inline-start: auto;
+}
+
+.nextHint {
+  grid-area: time;
+  font-size: 0.85rem;
+  color: var(--text-muted);
 }

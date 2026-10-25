@@ -118,10 +118,11 @@ export function useTracker(): TrackerApi {
   // que l'application est en arrière-plan).
   const widgetMergeDone = useRef(false);
   useEffect(() => {
-    if (widgetMergeDone.current) return;
-    widgetMergeDone.current = true;
-
+    // La clé du jour est calculée à chaque fusion : après un passage à minuit,
+    // les cigarettes ajoutées depuis le widget doivent tomber sur le *nouveau*
+    // jour, et non sur celui en vigueur au montage.
     const merge = async () => {
+      const currentKey = dayKey();
       const { pending: pendingFromWidget, lastSmokedAt: widgetAt } =
         await consumeWidgetAdditions();
       if (pendingFromWidget <= 0) return;
@@ -129,18 +130,25 @@ export function useTracker(): TrackerApi {
       // On conserve l'heure réelle du widget (la cigarette a pu être fumée
       // plusieurs heures avant l'ouverture de l'application), sauf si elle
       // appartient déjà à la veille.
-      const at = widgetAt && dayKey(widgetAt) === todayKey ? widgetAt : undefined;
-      await store.increment(todayKey, pendingFromWidget, 0, true, at);
+      const at = widgetAt && dayKey(widgetAt) === currentKey ? widgetAt : undefined;
+      await store.increment(currentKey, pendingFromWidget, 0, true, at);
     };
 
-    void merge();
+    // Fusion initiale : une seule fois par vie de l'application.
+    if (!widgetMergeDone.current) {
+      widgetMergeDone.current = true;
+      void merge();
+    }
 
+    // Puis à chaque retour au premier plan — et ce, *y compris après minuit* :
+    // l'écouteur est réinstallé à chaque exécution de l'effet sans être
+    // conditionné au premier montage.
     const onVisible = () => {
       if (document.visibilityState === "visible") void merge();
     };
     document.addEventListener("visibilitychange", onVisible);
     return () => document.removeEventListener("visibilitychange", onVisible);
-  }, [store, todayKey]);
+  }, [store]);
 
   const lastSmokedAt = useMemo(() => {
     const dates = (snapshot?.entries ?? [])

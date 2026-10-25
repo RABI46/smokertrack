@@ -27,7 +27,7 @@ export default function NativeShell() {
       try {
         const { StatusBar, Style } = await import("@capacitor/status-bar");
         await StatusBar.setStyle({ style: Style.Dark });
-        await StatusBar.setBackgroundColor({ color: "#0b1120" });
+        await StatusBar.setBackgroundColor({ color: "#070b17" });
       } catch {
         // Plugin absent (build web) : sans conséquence.
       }

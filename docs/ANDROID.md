@@ -71,7 +71,7 @@ Pour un dépôt public, gardez le keystore **hors du dépôt** (il est ignoré p
 | minSdk / targetSdk | 24 (Android 7.0) / 36 |
 | WebView | `https://localhost` (`androidScheme: https`) |
 | Permissions | `INTERNET` uniquement (imposée par le WebView ; l'app fonctionne en mode avion) |
-| Thème | sombre, splash « flamme », barre d'état `#0b1120` |
+| Thème | « Aurora Glass » sombre, splash « flamme », barre d'état `#070b17` |
 | Données | `localStorage` du WebView — même modèle local-first que la PWA |
 | Taille APK | ~4,2 Mo (l'export web pèse moins de 1 Mo) |
 | Widget | `AppWidgetProvider` natif : compteur, dernière cigarette, compte à rebours, bouton « +1 » |
@@ -100,12 +100,12 @@ L'APK embarque un **vrai widget Android** (`AppWidgetProvider`), pas une simple 
 |---|---|
 | Affichage | Nombre de cigarettes du jour + objectif |
 | Heure de la dernière cigarette | `Dernière : 14:32`, ou « aucune cigarette aujourd'hui » |
-| Compte à rebours | Vers la prochaine cigarette, avec passage en « en retard de … » |
+| Compte à rebours | Vers la prochaine cigarette, en **grand** ; **rouge** pendant le décompte puis **vert** dès qu'il atteint zéro, avec passage en « en retard de … » |
 | Bouton **+ Une cigarette** | Enregistre une cigarette **sans ouvrir** l'application |
 | Toucher le compteur | Ouvre l'application |
 | Minuit | Le widget repart de zéro même si l'app n'a pas été ouverte |
 | Taille | 2×2 cellules par défaut, redimensionnable (2×1 minimum) |
-| Thème | Fond bleu nuit, accents orange, cohérent avec l'app |
+| Thème | **Liquid glass** : verre teinté translucide, reflet supérieur, bouton sarcelle vitré — accordé au thème Aurora Glass de l'app |
 
 ### D'où vient le compte à rebours
 

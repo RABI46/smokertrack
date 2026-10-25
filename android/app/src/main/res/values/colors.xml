@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Palette alignée sur l'interface web (src/app/globals.css). -->
-    <color name="colorPrimary">#0B1120</color>
-    <color name="colorPrimaryDark">#05080F</color>
-    <color name="colorAccent">#F97316</color>
-    <color name="appBackground">#0B1120</color>
-    <color name="appTextPrimary">#F4F6FB</color>
+    <!-- Palette « Aurora Glass » alignée sur l'interface web (src/app/globals.css). -->
+    <color name="colorPrimary">#070B17</color>
+    <color name="colorPrimaryDark">#04070F</color>
+    <color name="colorAccent">#2DD4BF</color>
+    <color name="appBackground">#070B17</color>
+    <color name="appTextPrimary">#EEF2F8</color>
 </resources>

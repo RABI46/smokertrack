@@ -165,6 +165,14 @@ public class SmokeWidgetProvider extends AppWidgetProvider {
             views.setChronometerCountDown(R.id.widget_next, !overdue);
             views.setChronometer(R.id.widget_next, base, CHRONOMETER_FORMAT, true);
 
+            // Compte à rebours : rouge pendant tout le décompte, vert dès que
+            // le compte atteint zéro (créneau atteint). L'alarme
+            // `REQUEST_ALARM_DUE` provoque ce rafraîchissement à l'échéance.
+            views.setTextColor(
+                    R.id.widget_next,
+                    overdue ? 0xFF4ADE80 : 0xFFF87171
+            );
+
             views.setTextViewText(
                     R.id.widget_last,
                     context.getString(R.string.widget_last_format, formatTime(context, lastSmokedAt))

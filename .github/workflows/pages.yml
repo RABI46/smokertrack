@@ -76,7 +76,10 @@ jobs:
   deploy:
     name: Deploy
     needs: build
-    if: github.event_name != 'pull_request'
+    # Seul `main` publie : les branches de travail (arena/**) passent les
+    # contrôles qualité + build mais ne déployent pas (règle de protection de
+    # l'environnement github-pages), ce qui évite un run volontairement en échec.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     permissions:
       pages: write

@@ -3,6 +3,18 @@ import "./globals.css";
 
 const basePath = process.env.NEXT_PUBLIC_BASE_PATH ?? "";
 
+/**
+ * Réapplique la préférence de thème avant la première peinture : sans ce
+ * script, la page clignoterait au thème système avant l'hydratation.
+ * `localStorage` peut lever en mode privé → try/catch, échec sans conséquence.
+ */
+const THEME_BOOT_SCRIPT = `
+try {
+  var t = localStorage.getItem("smokertrack.theme");
+  if (t === "light" || t === "dark") document.documentElement.dataset.theme = t;
+} catch (e) {}
+`.trim();
+
 export const metadata: Metadata = {
   title: {
     default: "SmokeTracker — suivi de consommation",
@@ -39,6 +51,9 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="fr">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: THEME_BOOT_SCRIPT }} />
+      </head>
       <body>{children}</body>
     </html>
   );

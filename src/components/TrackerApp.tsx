@@ -12,6 +12,7 @@ import ServiceWorkerRegistration from "./ServiceWorkerRegistration";
 import SettingsCard from "./SettingsCard";
 import Skeleton from "./Skeleton";
 import StatsGrid from "./StatsGrid";
+import ThemeSwitcher from "./ThemeSwitcher";
 import WeeklyChart from "./WeeklyChart";
 import WidgetHelp from "./WidgetHelp";
 import { FlameIcon, ShieldIcon } from "./icons";
@@ -63,6 +64,7 @@ export default function TrackerApp() {
           <span className={styles.badge}>
             <ShieldIcon /> Sur cet appareil
           </span>
+          <ThemeSwitcher />
           <InstallPrompt />
         </div>
       </header>

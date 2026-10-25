@@ -281,6 +281,12 @@ suivants, corrigés dans cette session.
    périmée jusqu'à la prochaine seconde. Un rafraîchissement immédiat sur
    `visibilitychange` a été ajouté (et l'effet de fusion du widget a été
    par la même occasion débarrassé de sa dépendance à la clé du jour).
+4. **Run CI systématiquement en échec sur les branches de travail**
+   (`.github/workflows/pages.yml`). Le job *Deploy* tentait toujours de publier
+   GitHub Pages, mais l'environnement `github-pages` n'autorise que `main` :
+   chaque push `arena/**` finissait en échec alors que qualité et build
+   passaient. Correction : le déploiement ne s'exécute plus que sur `main`
+   (les branches de travail s'arrêtent à qualité + build, tous verts).
 
 ### 7.3 Refonte visuelle livrée
 
@@ -304,7 +310,7 @@ suivants, corrigés dans cette session.
 
 | # | Proposition | Pourquoi | Effort |
 |---|---|---|---|
-| 7.4.1 | **Choix manuel du thème** (auto / clair / sombre) mémorisé en `localStorage` + bascule dans l'en-tête | Le thème suit uniquement la préférence système ; beaucoup d'utilisateurs veulent forcer le sombre le soir | 1 h |
+| 7.4.1 | **Choix manuel du thème** (auto / clair / sombre) mémorisé en `localStorage` + bascule dans l'en-tête — ✅ implémenté (`ThemeSwitcher`, script anti-flash avant peinture) | Le thème suit uniquement la préférence système ; beaucoup d'utilisateurs veulent forcer le sombre le soir | 1 h |
 | 7.4.2 | **Tests E2E Playwright** sur 2 parcours critiques (raccourci `?action=add` puis rechargement ; import d'une sauvegarde corrompue) | Les tests unitaires ne couvrent pas l'URL ni le cycle de vie complet | 3 h |
 | 7.4.3 | **Export CSV** en plus du JSON | Ouvrir l'historique dans un tableur pour un suivi médical / un médecin | 1 h |
 | 7.4.4 | Widget : **alarme exacte à l'échéance** (`SCHEDULE_EXACT_ALARM`, Android 12+) avec repli `setAndAllowWhileIdle` | Aujourd'hui la bascule rouge → vert peut être en retard d'une minute en veille profonde | 1 h30 |

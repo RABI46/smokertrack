@@ -26,8 +26,10 @@
   color-scheme: dark;
 }
 
+/* Thème « auto » : on suit la préférence système, sauf si l'utilisateur a
+   forcé le sombre (`data-theme="dark"` sur <html>). */
 @media (prefers-color-scheme: light) {
-  :root {
+  :root:not([data-theme="dark"]) {
     --bg: #f1f6f5;
     --bg-soft: rgba(255, 255, 255, 0.78);
     --surface: rgba(255, 255, 255, 0.72);
@@ -50,6 +52,31 @@
     --shadow-glow: 0 12px 28px -12px rgba(13, 148, 136, 0.35);
     color-scheme: light;
   }
+}
+
+/* Thème clair forcé par l'utilisateur (sélecteur de thème de l'en-tête). */
+:root[data-theme="light"] {
+  --bg: #f1f6f5;
+  --bg-soft: rgba(255, 255, 255, 0.78);
+  --surface: rgba(255, 255, 255, 0.72);
+  --surface-hover: rgba(255, 255, 255, 0.95);
+  --border: rgba(15, 23, 42, 0.1);
+  --border-strong: rgba(15, 23, 42, 0.22);
+  --glass-tint: rgba(255, 255, 255, 0.5);
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --text: #0e1a2b;
+  --text-muted: #4e5d75;
+  --accent: #0d9488;
+  --accent-2: #0284c7;
+  --accent-soft: rgba(13, 148, 136, 0.12);
+  --accent-strong: #0f766e;
+  --on-accent: #ffffff;
+  --success: #16a34a;
+  --danger: #dc2626;
+  --warning: #b45309;
+  --shadow: 0 16px 40px -20px rgba(15, 23, 42, 0.3);
+  --shadow-glow: 0 12px 28px -12px rgba(13, 148, 136, 0.35);
+  color-scheme: light;
 }
 
 * {
@@ -117,12 +144,20 @@ body::after {
 }
 
 @media (prefers-color-scheme: light) {
-  body::before {
+  :root:not([data-theme="dark"]) body::before {
     opacity: 0.55;
   }
-  body::after {
+  :root:not([data-theme="dark"]) body::after {
     opacity: 0.5;
   }
+}
+
+:root[data-theme="light"] body::before {
+  opacity: 0.55;
+}
+
+:root[data-theme="light"] body::after {
+  opacity: 0.5;
 }
 
 @keyframes auroraDriftA {

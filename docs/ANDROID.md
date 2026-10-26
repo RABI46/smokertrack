@@ -88,9 +88,20 @@ Pour un dépôt public, gardez le keystore **hors du dépôt** (il est ignoré p
 
 ### Mise à jour de l'application
 
-Le `versionCode` est fixé au numéro de run GitHub Actions : il croît donc à chaque build, ce
-qui permet l'installation par-dessus l'ancienne version. Le `versionName` suit
-`package.json`.
+`versionName` ("1.5.0") et `versionCode` (150) sont écrits **en dur** dans
+`android/app/build.gradle` — c'est la source unique de vérité, identique pour la CI,
+F-Droid et les builds locaux :
+
+- garder `versionName` aligné sur `package.json` > `version` (la CI échoue sinon) ;
+- incrémenter `versionCode` à **chaque** publication (Android et F-Droid l'exigent) ;
+- convention adoptée : `MAJEURE * 10000 + MINEURE * 100 + CORRECTIF` (1.5.0 → 150) ;
+- la forme littérale (`versionCode 150`, `versionName "1.5.0"`) est volontaire : le
+  robot `checkupdates` de F-Droid relit ces lignes à chaque nouveau tag git pour
+  proposer les mises à jour automatiquement.
+
+À chaque nouvelle version : incrémenter les deux champs, ajouter
+`fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt`, puis publier le tag
+`v<versionName>`. Voir [FDROID.md](FDROID.md) pour la procédure de distribution complète.
 
 ## Widget natif d'écran d'accueil
 

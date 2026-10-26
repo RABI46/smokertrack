@@ -1,0 +1,6 @@
+Version 1.5.0 — première publication F-Droid.
+
+- Widget d'écran d'accueil : compteur, dernière cigarette, compte à rebours, ajout rapide.
+- Tendances : moyenne 7 jours, total 30 jours, série en cours, comparaison hebdomadaire.
+- Sauvegarde automatique hebdomadaire et export/restauration JSON.
+- Build débarrassé de tout composant propriétaire (plugin Google Services retiré).

@@ -73,13 +73,23 @@ jobs:
       - name: Sync web assets into Android project
         run: npx cap sync android
 
-      # `versionCode` doit croître à chaque APK publié : le numéro de run suffit.
+      # Source unique de vérité : android/app/build.gradle (identique à ce que
+      # F-Droid compile et à ce que son robot de mise à jour relit aux tags).
       - name: Compute version
         id: version
         run: |
-          VERSION_NAME=$(node -p "require('./package.json').version")
+          GRADLE_FILE=android/app/build.gradle
+          VERSION_NAME=$(grep -oP 'versionName\s+"\K[^"]+' "$GRADLE_FILE")
+          VERSION_CODE=$(grep -oP 'versionCode\s+\K[0-9]+' "$GRADLE_FILE")
+          test -n "$VERSION_NAME" && test -n "$VERSION_CODE"
+          # Garde-fou : versionName doit rester aligné sur package.json.
+          PKG_VERSION=$(node -p "require('./package.json').version")
+          if [ "$VERSION_NAME" != "$PKG_VERSION" ]; then
+            echo "::error::versionName '$VERSION_NAME' (build.gradle) != version '$PKG_VERSION' (package.json)"
+            exit 1
+          fi
           echo "name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
-          echo "code=${{ github.run_number }}" >> "$GITHUB_OUTPUT"
+          echo "code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
 
       # Les secrets sont interdits dans un `if` : on expose le résultat via une sortie.
       - name: Detect signing configuration
@@ -104,18 +114,12 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: |
-          ./gradlew assembleRelease --no-daemon \
-            -PappVersionCode=${{ steps.version.outputs.code }} \
-            -PappVersionName=${{ steps.version.outputs.name }}
+        run: ./gradlew assembleRelease --no-daemon
 
       - name: Build APK (debug)
         if: steps.signing.outputs.has_keystore != 'true'
         working-directory: android
-        run: |
-          ./gradlew assembleDebug --no-daemon \
-            -PappVersionCode=${{ steps.version.outputs.code }} \
-            -PappVersionName=${{ steps.version.outputs.name }}
+        run: ./gradlew assembleDebug --no-daemon
 
       - name: Collect APK
         id: collect

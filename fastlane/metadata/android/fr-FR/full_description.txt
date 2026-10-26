@@ -1,0 +1,15 @@
+SmokeTracker est un carnet de bord personnel pour suivre sa consommation de cigarettes au quotidien. Aucun compte, aucun serveur : toutes les données restent dans l'appareil.
+
+Fonctionnalités :
+
+- Compteur du jour en un geste, avec annulation de la dernière saisie.
+- Objectif quotidien réglable (1 à 100) avec barre de progression.
+- Tendances : moyenne sur 7 jours, total sur 30 jours, comparaison avec la semaine précédente, série de jours dans l'objectif.
+- Histogramme des 7 derniers jours et historique modifiable : correction possible des jours passés.
+- Widget d'écran d'accueil : compteur, heure de la dernière cigarette, compte à rebours de la prochaine, et ajout rapide sans ouvrir l'application.
+- Sauvegarde : export et restauration JSON, sauvegarde automatique hebdomadaire (optionnelle) et effacement total des données.
+- Hors-ligne intégral : l'application fonctionne en mode avion.
+
+Confidentialité : le suivi du tabagisme est une donnée de santé. SmokeTracker ne collecte, ne transmet ni n'analyse rien — aucune statistique d'usage, aucune publicité, aucun traqueur. Les données vivent dans le stockage local de l'appareil et l'export JSON reste sous votre contrôle.
+
+Permissions : seules « Internet » (techniquement requise par le WebView Android même hors-ligne — aucune requête sortante n'est effectuée) et « Alarmes et rappels » (bascule ponctuelle du compte à rebours du widget sur Android 12+) sont demandées.

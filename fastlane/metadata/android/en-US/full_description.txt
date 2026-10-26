@@ -1,0 +1,15 @@
+SmokeTracker is a personal logbook to track daily cigarette consumption. No account, no server: all data stays on the device.
+
+Features:
+
+- One-tap daily counter, with undo for the last entry.
+- Adjustable daily goal (1 to 100) with a progress bar.
+- Trends: 7-day average, 30-day total, week-over-week comparison, current streak of in-goal days.
+- Bar chart of the last 7 days and an editable history: past days can be corrected.
+- Home screen widget: counter, time of the last cigarette, countdown to the next one, and quick logging without opening the app.
+- Backup: JSON export and restore, optional weekly automatic backup, and full data wipe.
+- Fully offline: the app works in airplane mode.
+
+Privacy: smoking data is health data. SmokeTracker collects, transmits and analyzes nothing — no usage analytics, no ads, no trackers. Data lives in the device's local storage and the JSON export stays under your control.
+
+Permissions: only "Internet" (technically required by the Android WebView even offline — no outgoing request is ever made) and "Alarms & reminders" (precise widget countdown updates on Android 12+) are requested.

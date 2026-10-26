@@ -7,9 +7,13 @@ android {
         applicationId "io.github.rabi46.smokertrack"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        // `versionCode` doit augmenter à chaque publication (injecté par la CI).
-        versionCode project.findProperty("appVersionCode")?.toInteger() ?: 1
-        versionName project.findProperty("appVersionName") ?: "1.2.0"
+        // Source unique de vérité pour la version (voir docs/ANDROID.md) :
+        //   - garder `versionName` EN PHASE avec `package.json` > version ;
+        //   - incrémenter `versionCode` à CHAQUE publication (F-Droid l'exige) ;
+        //   - forme littérale volontaire : le robot de mise à jour de F-Droid
+        //     (checkupdates) relit ces deux lignes à chaque nouveau tag git.
+        versionCode 150
+        versionName "1.5.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -67,12 +71,3 @@ dependencies {
 }
 
 apply from: 'capacitor.build.gradle'
-
-try {
-    def servicesJSON = file('google-services.json')
-    if (servicesJSON.text) {
-        apply plugin: 'com.google.gms.google-services'
-    }
-} catch(Exception e) {
-    logger.info("google-services.json not found, google-services plugin not applied. Push Notifications won't work")
-}

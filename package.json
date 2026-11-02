@@ -22,7 +22,7 @@
     "android:bundle": "npm run android:sync && cd android && ./gradlew bundleRelease"
   },
   "dependencies": {
-    "@capacitor/android": "8.5.3",
+    "@capacitor/android": "8.6.0",
     "@capacitor/core": "8.5.3",
     "@capacitor/status-bar": "8.0.4",
     "next": "14.2.35",

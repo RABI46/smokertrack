@@ -1,0 +1,6 @@
+Version 1.5.0 — first F-Droid release.
+
+- Home screen widget: counter, last cigarette, countdown, quick logging.
+- Trends: 7-day average, 30-day total, current streak, weekly comparison.
+- Weekly automatic backup plus JSON export/restore.
+- Build freed of any proprietary component (Google Services plugin removed).

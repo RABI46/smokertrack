@@ -8,6 +8,8 @@ local-first** : aucun compte, aucun serveur, aucune donnée envoyée nulle part.
 <https://github.com/RABI46/smokertrack/actions/workflows/android.yml> → dernier run →
 *Artifacts* → `smokertrack-apk-<n>` → `smokertrack-<version>-<n>.apk` (~4 Mo, Android 7+).
 Voir [docs/ANDROID.md](docs/ANDROID.md).
+**F-Droid** : dossier de soumission prêt (métadonnées, descriptions, icône) — voir
+[docs/FDROID.md](docs/FDROID.md).
 
 > Le suivi du tabagisme est une donnée de santé. L'application ne stocke donc rien ailleurs
 > que dans le navigateur de l'utilisateur, et propose un export de sauvegarde ainsi qu'un

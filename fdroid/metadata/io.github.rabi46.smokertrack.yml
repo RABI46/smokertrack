@@ -1,0 +1,70 @@
+# ============================================================================
+# Métadonnées F-Droid pour SmokeTracker — PRÊTES À SOUMETTRE.
+#
+# Copie de référence conservée dans le dépôt. Le fichier « officiel » doit être
+# ajouté sous metadata/io.github.rabi46.smokertrack.yml dans un fork de
+# https://gitlab.com/fdroid/fdroiddata puis soumis en merge request
+# (procédure complète : docs/FDROID.md).
+#
+# Le schéma de build reproduit celui d'autres applications Capacitor déjà
+# publiées (com.kasette.app, com.iTrack.app, dev.fiedri.vibe…) :
+#   1. `sudo` : Node.js récent (Capacitor 8 exige Node >= 22) via la suite
+#      Debian « forky », JDK 21 (requis par AGP 8 / compileOptions 21).
+#   2. `init` : construction de l'export web statique puis `cap sync android`
+#      (génère android/app/src/main/assets/public et
+#      android/capacitor-cordova-android-plugins).
+#   3. `gradle: yes` : compile un APK release NON SIGNÉ, que F-Droid signe
+#      avec sa propre clé.
+#   4. `scandelete: node_modules` : le scanneur supprime silencieusement les
+#      binaires potentiels des dépendances npm (inutilisés après `init`) ;
+#      `scanignore` épargne l'archive d'amorçage embarquée par @capacitor/cli.
+#
+# Mises à jour : `AutoUpdateMode: Version` + `UpdateCheckMode: Tags` — F-Droid
+# détecte chaque nouveau tag `vX.Y.Z`, relit versionName/versionCode dans
+# android/app/build.gradle et prépare le build tout seul. Il suffit donc de
+# garder build.gradle, package.json et fastlane/changelogs à jour, puis taguer.
+# ============================================================================
+
+Categories:
+  - Habit Tracker
+  - Health Manager
+License: MIT
+AuthorName: RABI46
+WebSite: https://rabi46.github.io/smokertrack/
+SourceCode: https://github.com/RABI46/smokertrack
+IssueTracker: https://github.com/RABI46/smokertrack/issues
+Changelog: https://github.com/RABI46/smokertrack/releases
+
+AutoName: SmokeTracker
+
+RepoType: git
+Repo: https://github.com/RABI46/smokertrack.git
+
+Builds:
+  - versionName: 1.5.0
+    versionCode: 150
+    commit: v1.5.0
+    subdir: android/app
+    sudo:
+      - apt-get update
+      - apt-get install -y openjdk-21-jdk-headless
+      - update-alternatives --auto java
+      - echo "deb https://deb.debian.org/debian forky main" > /etc/apt/sources.list.d/forky.list
+      - apt-get update
+      - apt-get install -y -t forky nodejs npm
+    init:
+      - cd ../..
+      - NEXT_TELEMETRY_DISABLED=1 npm ci --no-audit --no-fund
+      - NEXT_TELEMETRY_DISABLED=1 npm run build
+      - npx cap sync android
+    gradle:
+      - yes
+    scanignore:
+      - node_modules/@capacitor/cli/assets/capacitor-cordova-android-plugins.tar.gz
+    scandelete:
+      - node_modules
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.5.0
+CurrentVersionCode: 150

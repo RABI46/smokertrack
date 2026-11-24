@@ -40,13 +40,13 @@
     --glass-border: rgba(255, 255, 255, 0.75);
     --text: #0e1a2b;
     --text-muted: #4e5d75;
-    --accent: #0d9488;
-    --accent-2: #0284c7;
+    --accent: #0f766e;
+    --accent-2: #0369a1;
     --accent-soft: rgba(13, 148, 136, 0.12);
     --accent-strong: #0f766e;
     --on-accent: #ffffff;
-    --success: #16a34a;
-    --danger: #dc2626;
+    --success: #15803d;
+    --danger: #b91c1c;
     --warning: #b45309;
     --shadow: 0 16px 40px -20px rgba(15, 23, 42, 0.3);
     --shadow-glow: 0 12px 28px -12px rgba(13, 148, 136, 0.35);
@@ -66,13 +66,13 @@
   --glass-border: rgba(255, 255, 255, 0.75);
   --text: #0e1a2b;
   --text-muted: #4e5d75;
-  --accent: #0d9488;
-  --accent-2: #0284c7;
+  --accent: #0f766e;
+  --accent-2: #0369a1;
   --accent-soft: rgba(13, 148, 136, 0.12);
   --accent-strong: #0f766e;
   --on-accent: #ffffff;
-  --success: #16a34a;
-  --danger: #dc2626;
+  --success: #15803d;
+  --danger: #b91c1c;
   --warning: #b45309;
   --shadow: 0 16px 40px -20px rgba(15, 23, 42, 0.3);
   --shadow-glow: 0 12px 28px -12px rgba(13, 148, 136, 0.35);
@@ -178,6 +178,17 @@ body::after {
   }
 }
 
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p,
+li {
+  text-wrap: pretty;
+}
+
 a {
   color: var(--accent-strong);
   text-decoration: none;
@@ -190,12 +201,14 @@ a:hover {
 
 button {
   font-family: inherit;
+  /* Pas de halo bleu au tap : le retour tactile est le `scale(0.96)` des boutons. */
+  -webkit-tap-highlight-color: transparent;
 }
 
+/* Pas de `border-radius` ici : cela écraserait la forme de l'élément focalisé. */
 :focus-visible {
   outline: 3px solid var(--accent-strong);
   outline-offset: 2px;
-  border-radius: 8px;
 }
 
 ::selection {

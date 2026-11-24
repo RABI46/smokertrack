@@ -51,16 +51,22 @@ export default function CounterCard({
 
       <div className={styles.counterRow}>
         {/* Le `key` remonte le span à chaque incrémentation : l'animation
-            « pop » du compteur rejoue à chaque cigarette ajoutée. */}
-        <span
-          key={stats.today}
-          className={styles.counter}
-          aria-live="polite"
-          aria-atomic="true"
-        >
+            « pop » du compteur rejoue à chaque cigarette ajoutée. Pas de
+            `aria-live` ici : un nœud remonté est un nouveau nœud, que les
+            lecteurs d'écran n'annoncent pas de façon fiable. L'annonce passe
+            par la région stable ci-dessous. */}
+        <span key={stats.today} className={styles.counter} aria-hidden="true">
           {stats.today}
         </span>
-        <span className={styles.counterUnit}>
+        <span
+          className="visually-hidden"
+          aria-live="polite"
+          aria-atomic="true"
+          data-testid="counter-announcement"
+        >
+          {stats.today} cigarette{stats.today > 1 ? "s" : ""} aujourd&apos;hui
+        </span>
+        <span className={styles.counterUnit} aria-hidden="true">
           cigarette{stats.today > 1 ? "s" : ""}
         </span>
         <span className={styles.counterGoal}>objectif {stats.goal}</span>

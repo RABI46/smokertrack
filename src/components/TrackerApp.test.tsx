@@ -51,6 +51,12 @@ describe("TrackerApp", () => {
     await waitFor(() => {
       expect(screen.getByText("Encore 8 cigarettes dans l'objectif.")).toBeTruthy();
     });
+
+    // L'annonce aux lecteurs d'écran vit dans une région stable : le compteur,
+    // lui, est remonté à chaque clic et ne serait pas annoncé de façon fiable.
+    expect(screen.getByTestId("counter-announcement").textContent).toBe(
+      "2 cigarettes aujourd'hui",
+    );
   });
 
   it("annule la dernière cigarette enregistrée", async () => {

@@ -99,3 +99,50 @@ Le CI de `main` était **déjà rouge** avant cette revue (run `45491525017`, jo
 | `vitest.config.ts` | `esbuild:{jsx:"automatic"}` n'est plus lu par Vitest 5 (Vite 8/oxc) → 7 fichiers `.tsx` en échec de parsing | `oxc:{jsx:{runtime:"automatic"}}` |
 
 `npm run lint`, `typecheck`, `test` et `build` passent désormais tous les quatre.
+---
+
+## Passe 2 — suite de la revue (même branche)
+
+Deuxième passage, après la fusion de la première PR, en gardant la même discipline de diff.
+
+### Constats corrigés
+
+| Sévérité | Emplacement | Avant | Après | Pourquoi |
+| --- | --- | --- | --- | --- |
+| MEDIUM | `tracker.module.css` (`.card`) | bordure claire seule | `box-shadow: var(--ring), var(--shadow)` avec un jeton `--ring` (liseré interne, thémé) | Une bordure pour créer du relief est moins propre qu'une ombre interne fine ; le jeton suit les deux thèmes. |
+| MEDIUM | `tracker.module.css` (`.sectionTitle`) | titre nu, toutes les cartes identiques | filet d'accent de 3 px devant le titre | Les cartes se repèrent sans lire leur titre, ce qui accélère le balayage vertical sur mobile. |
+| MEDIUM | `tracker.module.css` (`.progressFill::after`) | balayage lumineux toutes les 2,8 s, en boucle | reflet fixe en haut du remplissage | Animation en boucle sur une information qui change à chaque cigarette : coût d'attention répété, pour rien. |
+| MEDIUM | `globals.css` (`prefers-reduced-motion`) | durée ramenée à 0,001 ms, donc boucles relancées indéfiniment | `animation-iteration-count: 1`, aurores figées | Une durée nulle n'arrête pas une animation `infinite` : elle la rejoue. |
+| LOW | `tracker.module.css` (`.hero`) | même surface que les autres cartes | filet supérieur sarcelle + halo diffus | La carte d'action principale mérite d'être la première chose vue. |
+| LOW | `tracker.module.css` (`.statValue`, `.stat`) | 1,5 rem, pas de repère | 1,6 rem + barre d'accent verticale | La valeur est la raison de lire la carte : elle porte la hiérarchie. |
+| LOW | `HistoryList.tsx` / `.listRowToday` | aujourd'hui indiscernable une fois la liste défilée | ligne teintée, date en gras | Repère constant, sans animation. |
+| LOW | `SettingsCard.tsx` / `.buttonRowDivider` | « Effacer » collé aux exports | séparateur pleine largeur | Deux intentions opposées ne doivent pas se toucher. |
+| LOW | `tracker.module.css` (`.chartGoalLine::after`) | ligne d'objectif sans légende | étiquette « objectif » (décor, `aria-hidden` conservé) | Le repère était visible mais muet. |
+
+### Widgets — la partie la plus visible de cette passe
+
+Deux widgets natifs supplémentaires dans l'APK (voir `docs/ANDROID.md`) :
+
+| Widget | Contenu | Point de conception |
+| --- | --- | --- |
+| **Semaine** (4×2) | 7 barres, ligne d'objectif, moyenne + jours au-dessus | Les données arrivent **déjà calculées** du WebView (CSV) : la règle « un jour n'est suivi qu'à partir de la première saisie » reste dans `domain.ts`, et une barre creuse vaut « hors suivi », jamais un zéro vert |
+| **+1** (2×1) | compteur + un bouton | Même file d'attente que le widget Jour : aucun doublon possible, et la semaine mémorisée est incrémentée pour que les deux widgets restent cohérents |
+
+### Rejets (passe 2)
+
+| Emplacement | Candidat | Rejeté parce que |
+| --- | --- | --- |
+| `tracker.module.css` (`.counter`) | Changer la police du compteur pour une police variable embarquée | Rejeté : la règle du projet est l'absence de police distante, et le dégradé sur `system-ui` tient déjà le rôle visuel. |
+| `tracker.module.css` (`.nextRow`) | Passer le compte à rebours en anneau circulaire | Rejeté : ce serait un nouveau composant (SVG + calcul d'arc) pour une information déjà lisible, et le skill demande le plus petit changement complet. |
+| Widget Semaine | Calculer les dates côté Java | Rejeté : dupliquerait la règle de fuseau/jour de `src/lib/date.ts`, avec le risque de divergence déjà documenté pour `spacingMs()`. |
+
+### Vérification (passe 2)
+
+| Commande | Résultat |
+| --- | --- |
+| `npm run lint` / `npm run typecheck` | ✔ |
+| `npm test` | ✔ 11 fichiers, **135 tests** (dont un nouveau cas sur le CSV de la semaine) |
+| `npm run build` | ✔ export statique |
+| Workflow **Android APK** sur la branche | ✔ succès (`45499492130`) — compilation Java + liaison des ressources des trois widgets |
+| Rendu visuel des widgets sur un appareil | **Non vérifié** : aucun SDK Android ni appareil dans cet environnement, et l'artefact APK n'est pas téléchargeable ici. À contrôler sur un téléphone, en particulier la hauteur des barres sur Android 11 et antérieur (`setViewLayoutHeight` y est ignoré). |
+

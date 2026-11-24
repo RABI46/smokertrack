@@ -154,6 +154,8 @@ export default function SettingsCard({
             event.target.value = "";
           }}
         />
+        {/* L'effacement est séparé des exports : ce n'est pas la même intention. */}
+        <span className={styles.buttonRowDivider} />
         <button
           type="button"
           className={`${styles.ghostButton} ${styles.smallButton} ${styles.dangerButton}`}

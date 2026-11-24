@@ -27,9 +27,8 @@ export default function WidgetHelp() {
       {native ? (
         <>
           <p className={styles.sectionHint}>
-            L&apos;application Android inclut un widget natif : compteur du jour, heure de la
-            dernière cigarette, compte à rebours vers la prochaine et ajout d&apos;une cigarette
-            sans ouvrir l&apos;application.
+            L&apos;application Android inclut <strong>trois</strong> widgets : le compteur du jour
+            avec compte à rebours, la semaine en barres, et un « +1 » minimal.
           </p>
           <ol className={styles.helpList}>
             <li>Revenir à l&apos;écran d&apos;accueil, appuyer longuement sur une zone vide.</li>
@@ -41,6 +40,14 @@ export default function WidgetHelp() {
             <li>
               Redimensionnable (2×1 minimum). Le décompte se met à jour tout seul ; le widget
               repart de zéro à minuit, même si l&apos;application n&apos;est pas ouverte.
+            </li>
+            <li>
+              <strong>Semaine</strong> (4×2) : les 7 derniers jours en barres, ligne
+              d&apos;objectif comprise, avec la moyenne et le nombre de jours au-dessus.
+            </li>
+            <li>
+              <strong>+1</strong> (2×1) : le compteur et un seul bouton, à poser près du pouce.
+              Il partage la file d&apos;attente du widget principal : aucun doublon possible.
             </li>
             <li>
               Les ajouts faits depuis le widget sont fusionnés dans les données à la prochaine

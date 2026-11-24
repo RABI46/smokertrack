@@ -52,6 +52,7 @@ describe("widgetBridge", () => {
         lastSmokedAt: null,
         average7: 0,
         streak: 0,
+        last7: [],
       }),
     ).resolves.toBeUndefined();
   });
@@ -66,6 +67,7 @@ describe("widgetBridge", () => {
       lastSmokedAt: null,
       average7: 3.2,
       streak: 5,
+      last7: [],
     });
 
     expect(bridge.sync).toHaveBeenCalledWith({
@@ -75,7 +77,41 @@ describe("widgetBridge", () => {
       lastSmokedAt: 0,
       average7Tenths: 32,
       streak: 5,
+      week7Counts: "",
+      week7Tracked: "",
     });
+  });
+
+  it("pousse la semaine en CSV, alignée et limitée à 7 jours", async () => {
+    const bridge = installNativeBridge();
+
+    await syncWidgetState({
+      todayKey: "2026-10-24",
+      count: 2,
+      goal: 10,
+      lastSmokedAt: null,
+      average7: 4,
+      streak: 1,
+      // 9 jours fournis : seuls les 7 derniers doivent partir (widget à 7 colonnes).
+      last7: [
+        { date: "2026-10-16", count: 9, tracked: true },
+        { date: "2026-10-17", count: 8, tracked: true },
+        { date: "2026-10-18", count: 3, tracked: true },
+        { date: "2026-10-19", count: 0, tracked: false },
+        { date: "2026-10-20", count: 5, tracked: true },
+        { date: "2026-10-21", count: 1, tracked: true },
+        { date: "2026-10-22", count: 4, tracked: true },
+        { date: "2026-10-23", count: 2, tracked: true },
+        { date: "2026-10-24", count: 2, tracked: true },
+      ],
+    });
+
+    expect(bridge.sync).toHaveBeenCalledWith(
+      expect.objectContaining({
+        week7Counts: "3,0,5,1,4,2,2",
+        week7Tracked: "1,0,1,1,1,1,1",
+      }),
+    );
   });
 
   it("borne la moyenne négative et arrondit la série", async () => {
@@ -88,6 +124,7 @@ describe("widgetBridge", () => {
       lastSmokedAt: null,
       average7: -3,
       streak: 2.6,
+      last7: [],
     });
 
     expect(bridge.sync).toHaveBeenCalledWith(
@@ -106,6 +143,7 @@ describe("widgetBridge", () => {
       lastSmokedAt,
       average7: 0,
       streak: 0,
+      last7: [],
     });
 
     // Le natif n'a pas de `null` : 0 signifie « aucune cigarette aujourd'hui ».
@@ -124,6 +162,7 @@ describe("widgetBridge", () => {
       lastSmokedAt: new Date(Number.NaN),
       average7: 0,
       streak: 0,
+      last7: [],
     });
 
     expect(bridge.sync).toHaveBeenCalledWith(
@@ -172,6 +211,7 @@ describe("widgetBridge", () => {
         lastSmokedAt: null,
         average7: 0,
         streak: 0,
+        last7: [],
       }),
     ).resolves.toBeUndefined();
     await expect(consumeWidgetAdditions()).resolves.toEqual({
@@ -244,7 +284,7 @@ describe("application native", () => {
     render(<TrackerApp />);
 
     await screen.findByText("Widget d'écran d'accueil");
-    expect(screen.getByText(/widget natif/i)).toBeTruthy();
+    expect(screen.getByText(/trois/i)).toBeTruthy();
     expect(screen.getByText(/Glisser le widget sur l'écran d'accueil/i)).toBeTruthy();
   });
 });

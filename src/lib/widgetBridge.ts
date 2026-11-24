@@ -22,6 +22,11 @@ export interface WidgetSnapshotInput {
   average7: number;
   /** Série de jours consécutifs dans l'objectif. */
   streak: number;
+  /**
+   * 7 derniers jours, du plus ancien au plus récent — source du widget
+   * « Semaine » (barres + ligne d'objectif).
+   */
+  last7: { date: string; count: number; tracked: boolean }[];
 }
 
 /** Charge utile réellement envoyée au natif (les dates passent en millisecondes). */
@@ -34,6 +39,10 @@ interface NativeSnapshot {
   /** Moyenne × 10 : entier sans ambiguïté entre JS et Java (3,2 → 32). */
   average7Tenths: number;
   streak: number;
+  /** CSV de 7 entiers, même convention que `WidgetStorage` côté Java. */
+  week7Counts: string;
+  /** CSV de 7 indicateurs `0|1` alignés sur `week7Counts`. */
+  week7Tracked: string;
 }
 
 interface WidgetBridgePlugin {
@@ -81,6 +90,12 @@ export async function syncWidgetState(input: WidgetSnapshotInput): Promise<void>
     ? Math.max(0, Math.round(input.average7 * 10))
     : 0;
   const streak = Number.isFinite(input.streak) ? Math.max(0, Math.round(input.streak)) : 0;
+  // Toujours 7 valeurs : un widget à 7 colonnes ne doit jamais recevoir 6 jours.
+  const week = (input.last7 ?? []).slice(-7);
+  const week7Counts = week
+    .map((point) => String(Math.max(0, Math.round(point.count))))
+    .join(",");
+  const week7Tracked = week.map((point) => (point.tracked ? "1" : "0")).join(",");
 
   try {
     await bridge.sync({
@@ -90,6 +105,8 @@ export async function syncWidgetState(input: WidgetSnapshotInput): Promise<void>
       lastSmokedAt: Number.isFinite(lastSmokedAt) && lastSmokedAt > 0 ? Math.floor(lastSmokedAt) : 0,
       average7Tenths,
       streak,
+      week7Counts,
+      week7Tracked,
     });
   } catch {
     // Le widget gardera sa dernière valeur : aucune action utilisateur requise.

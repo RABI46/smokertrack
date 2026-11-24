@@ -17,4 +17,23 @@
     <string name="widget_add">+ Une cigarette</string>
     <string name="widget_hint_stale">Ouvrez l\'application pour actualiser</string>
     <string name="widget_description">Compteur du jour, dernière cigarette et compte à rebours de la prochaine, avec ajout rapide</string>
+
+    <!-- Widget « Semaine » (7 derniers jours) -->
+    <string name="widget_week_label">SmokeTracker · Semaine</string>
+    <string name="widget_week_title">7 derniers jours</string>
+    <string name="widget_week_empty">Ouvrez l\'application une fois pour remplir la semaine</string>
+    <string name="widget_week_footer_format">Moy. %1$s / jour · %2$d au-dessus de l\'objectif</string>
+    <string name="widget_week_description">Les 7 derniers jours en barres, avec la ligne d\'objectif</string>
+    <string name="widget_day_mon">L</string>
+    <string name="widget_day_tue">M</string>
+    <string name="widget_day_wed">M</string>
+    <string name="widget_day_thu">J</string>
+    <string name="widget_day_fri">V</string>
+    <string name="widget_day_sat">S</string>
+    <string name="widget_day_sun">D</string>
+
+    <!-- Widget « +1 » minimal -->
+    <string name="widget_quick_label">SmokeTracker · +1</string>
+    <string name="widget_quick_add">+1 cigarette</string>
+    <string name="widget_quick_description">Le compteur du jour et un bouton +1, sans ouvrir l\'application</string>
 </resources>

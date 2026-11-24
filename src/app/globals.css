@@ -20,6 +20,8 @@
   --danger: #fb7185;
   --warning: #fbbf24;
   --radius: 20px;
+  /* Liseré interne : donne du relief aux surfaces sans bordure lourde. */
+  --ring: inset 0 1px 0 rgba(255, 255, 255, 0.06);
   --shadow: 0 24px 48px -20px rgba(0, 0, 0, 0.55);
   --shadow-glow: 0 14px 34px -10px rgba(45, 212, 191, 0.4);
   --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -48,7 +50,9 @@
     --success: #15803d;
     --danger: #b91c1c;
     --warning: #b45309;
-    --shadow: 0 16px 40px -20px rgba(15, 23, 42, 0.3);
+    --ring: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    --ring: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --shadow: 0 16px 40px -20px rgba(15, 23, 42, 0.3);
     --shadow-glow: 0 12px 28px -12px rgba(13, 148, 136, 0.35);
     color-scheme: light;
   }
@@ -255,6 +259,13 @@ button {
   *::before,
   *::after {
     animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+
+  /* Les aurores et le halo du logo restent lisibles, simplement fixes. */
+  body::before,
+  body::after {
+    animation: none !important;
   }
 }

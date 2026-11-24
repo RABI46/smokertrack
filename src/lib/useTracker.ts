@@ -174,6 +174,10 @@ export function useTracker(): TrackerApi {
   // on le tient à jour à chaque changement.
   const average7 = useMemo(() => averageTracked(takeLast(series, 7)), [series]);
 
+  // Les deux autres widgets natifs (semaine, +1) lisent le même résumé : la
+  // semaine leur est poussée en même temps, jamais recalculée côté Java.
+  const last7 = useMemo(() => takeLast(series, 7), [series]);
+
   useEffect(() => {
     if (!snapshot) return;
     void syncWidgetState({
@@ -183,8 +187,9 @@ export function useTracker(): TrackerApi {
       lastSmokedAt: lastSmokedToday,
       average7,
       streak: stats.streak,
+      last7,
     });
-  }, [snapshot, todayKey, stats.today, stats.goal, stats.streak, lastSmokedToday, average7]);
+  }, [snapshot, todayKey, stats.today, stats.goal, stats.streak, lastSmokedToday, average7, last7]);
 
   const todayCount = stats.today;
 

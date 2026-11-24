@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Widget « +1 » minimal : 2×1 cellules. Une seule action, utilisable sans
+  ouvrir l'application ; partage la file d'attente du widget principal.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="56dp"
+    android:targetCellWidth="2"
+    android:targetCellHeight="1"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_quick_add"
+    android:previewLayout="@layout/widget_quick_add"
+    android:description="@string/widget_quick_description"
+    android:resizeMode="horizontal"
+    android:widgetCategory="home_screen" />

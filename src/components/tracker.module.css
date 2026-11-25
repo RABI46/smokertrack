@@ -1002,11 +1002,29 @@
 .footer {
   margin-top: 4px;
   display: flex;
+  align-items: center;
   justify-content: space-between;
   gap: 12px;
   flex-wrap: wrap;
   color: var(--text-muted);
   font-size: 0.78rem;
+}
+
+.donationLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent-strong);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.donationLink:hover {
+  background: var(--surface-hover);
 }
 
 .skeleton {

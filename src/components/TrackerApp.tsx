@@ -141,6 +141,14 @@ export default function TrackerApp() {
         <span>
           Données locales, sans compte — <Link href="/confidentialite">confidentialité</Link>
         </span>
+        <a
+          className={styles.donationLink}
+          href="https://ko-fi.com/rabi46"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          Faire un don libre sur Ko-fi
+        </a>
         <span>SmokeTracker v1.5.0</span>
       </footer>
     </div>

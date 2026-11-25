@@ -10,8 +10,8 @@ import com.getcapacitor.annotation.CapacitorPlugin;
  * Pont entre l'application web (WebView) et le widget natif.
  *
  * - `sync` : recopie le résumé du jour (compteur, objectif, heure de la
- *   dernière cigarette) dans les SharedPreferences lues par le widget, puis
- *   rafraîchit les widgets affichés.
+ *   dernière cigarette, 7 derniers jours) dans les SharedPreferences lues par
+ *   les trois widgets, puis les rafraîchit.
  * - `consumePending` : renvoie (et vide) les cigarettes ajoutées depuis le
  *   widget, avec l'horodatage réel de la dernière, que l'application fusionne
  *   dans ses données.
@@ -32,6 +32,9 @@ public class WidgetBridgePlugin extends Plugin {
         // Moyenne 7 jours × 10 et série en cours (poussées par `useTracker`).
         Integer average7Tenths = call.getInt("average7Tenths", 0);
         Integer streak = call.getInt("streak", 0);
+        // 7 derniers jours, déjà mis en forme par `widgetBridge.ts` (CSV).
+        String week7Counts = call.getString("week7Counts", "");
+        String week7Tracked = call.getString("week7Tracked", "");
 
         WidgetStorage.saveSnapshot(
                 getContext(),
@@ -42,6 +45,8 @@ public class WidgetBridgePlugin extends Plugin {
                 average7Tenths == null ? 0 : average7Tenths,
                 streak == null ? 0 : streak
         );
+        WidgetStorage.saveWeek(getContext(), week7Counts, week7Tracked);
+        // `refreshAll` du widget principal rafraîchit aussi Semaine et +1.
         SmokeWidgetProvider.refreshAll(getContext());
         call.resolve();
     }

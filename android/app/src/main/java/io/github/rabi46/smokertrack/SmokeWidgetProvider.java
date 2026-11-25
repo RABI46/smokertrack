@@ -102,6 +102,11 @@ public class SmokeWidgetProvider extends AppWidgetProvider {
         AppWidgetManager manager = AppWidgetManager.getInstance(context);
         ComponentName component = new ComponentName(context, SmokeWidgetProvider.class);
 
+        // Les deux autres widgets lisent les mêmes préférences : un seul point
+        // d'entrée garantit qu'ils ne restent jamais sur une valeur périmée.
+        WeekWidgetProvider.refreshAll(context);
+        QuickAddWidgetProvider.refreshAll(context);
+
         int[] appWidgetIds = manager.getAppWidgetIds(component);
         if (appWidgetIds == null || appWidgetIds.length == 0) {
             return;
@@ -111,7 +116,8 @@ public class SmokeWidgetProvider extends AppWidgetProvider {
         }
     }
 
-    private void handleAdd(Context context) {
+    /** Partagé avec {@link QuickAddWidgetProvider} : un seul chemin d'ajout. */
+    static void handleAdd(Context context) {
         String today = currentDayKey();
         long now = System.currentTimeMillis();
 
@@ -128,6 +134,11 @@ public class SmokeWidgetProvider extends AppWidgetProvider {
         // temps que la file d'attente, même si elle n'est ouverte qu'à midi.
         WidgetStorage.setLastSmokedAt(context, now);
         WidgetStorage.addPending(context, 1);
+        // La semaine mémorisée doit suivre : sinon le widget « Semaine »
+        // afficherait un total inférieur au compteur du jour.
+        WidgetStorage.bumpTodayInWeek(context);
+        // Le rafraîchissement des trois widgets est laissé à l'appelant
+        // (`refreshAll`), pour ne pas reconstruire trois fois les mêmes vues.
     }
 
     private static RemoteViews buildViews(Context context) {

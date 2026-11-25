@@ -39,17 +39,26 @@ Voir [docs/ANDROID.md](docs/ANDROID.md).
 - **Mise à jour PWA contrôlée** : bandeau « Nouvelle version disponible » et rechargement au
   clic (`SKIP_WAITING`), au lieu d'un service worker qui prend la main sans prévenir.
 - **Stockage persistant** : demande `navigator.storage.persist()` pour limiter les purges.
-- **Widget natif Android** (APK) : compteur, dernière cigarette, décompte de la prochaine et
-  ajout en un tap, fusionné au lancement avec son heure réelle.
+- **Trois widgets natifs Android** (APK) : jour (compteur, dernière cigarette, décompte de la
+  prochaine), semaine (7 jours en barres, ligne d'objectif) et « +1 » minimal. Ajouts fusionnés
+  au lancement avec leur heure réelle.
 - **Raccourcis d'écran d'accueil** (PWA) : `?action=add`.
 - **Ajout en un tap depuis l'écran d'accueil** : raccourci `?action=add` (voir ci-dessous).
 
 ## Widget & accès rapide depuis l'écran d'accueil
 
-**Dans l'application Android (APK)** : un **vrai widget natif** est disponible — compteur du
-jour, objectif, **heure de la dernière cigarette**, **compte à rebours vers la prochaine** (qui
-passe en « en retard de … »), et bouton « + Une cigarette » qui enregistre sans ouvrir
-l'application. Voir [docs/ANDROID.md](docs/ANDROID.md#widget-natif-décran-daccueil).
+**Dans l'application Android (APK)** : **trois widgets natifs** sont disponibles. Voir
+[docs/ANDROID.md](docs/ANDROID.md#widgets-natifs-décran-daccueil).
+
+| Widget | Taille | Contenu |
+|---|---|---|
+| **Jour** | 2×2 | Compteur, objectif, heure de la dernière cigarette, **compte à rebours vers la prochaine** (qui passe en « en retard de … »), bouton « + Une cigarette » |
+| **Semaine** | 4×2 | Les 7 derniers jours en barres (vert dans l'objectif, corail au-delà, creux avant le début du suivi), ligne d'objectif, moyenne et nombre de jours au-dessus |
+| **+1** | 2×1 | Le compteur du jour et un seul bouton, à poser près du pouce |
+
+Les trois lisent le même résumé synchronisé par l'application et partagent **une seule file
+d'attente d'ajouts** : enchaîner « +1 » sur deux widgets ne peut ni perdre ni doubler une
+cigarette.
 
 **Dans un navigateur (PWA)** : un widget natif est impossible (App Widget Android ou WidgetKit
 iOS exigent du code natif). Trois équivalents fonctionnels sont fournis :

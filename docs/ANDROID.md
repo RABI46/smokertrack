@@ -74,7 +74,7 @@ Pour un dépôt public, gardez le keystore **hors du dépôt** (il est ignoré p
 | Thème | « Aurora Glass » sombre, splash « flamme », barre d'état `#070b17` |
 | Données | `localStorage` du WebView — même modèle local-first que la PWA |
 | Taille APK | ~4,2 Mo (l'export web pèse moins de 1 Mo) |
-| Widget | `AppWidgetProvider` natif : compteur, dernière cigarette, compte à rebours, bouton « +1 » |
+| Widgets | Trois `AppWidgetProvider` natifs : **Jour** (compteur, dernière cigarette, compte à rebours, « +1 »), **Semaine** (7 jours en barres + ligne d'objectif) et **+1** minimal |
 
 ### Ce qui a été adapté pour le natif
 
@@ -103,9 +103,19 @@ F-Droid et les builds locaux :
 `fastlane/metadata/android/<locale>/changelogs/<versionCode>.txt`, puis publier le tag
 `v<versionName>`. Voir [FDROID.md](FDROID.md) pour la procédure de distribution complète.
 
-## Widget natif d'écran d'accueil
+## Widgets natifs d'écran d'accueil
 
-L'APK embarque un **vrai widget Android** (`AppWidgetProvider`), pas une simple icône :
+L'APK embarque **trois vrais widgets Android** (`AppWidgetProvider`), pas de simples icônes.
+Ils lisent tous les mêmes `SharedPreferences` remplies par l'application : ils ne peuvent pas
+diverger, et un seul point d'entrée (`SmokeWidgetProvider.refreshAll`) les rafraîchit tous.
+
+| Widget | Taille | Contenu |
+|---|---|---|
+| **Jour** (`SmokeWidgetProvider`) | 2×2, redimensionnable | Compteur + objectif, heure de la dernière cigarette, compte à rebours, moyenne 7 j + série, bouton « + Une cigarette » |
+| **Semaine** (`WeekWidgetProvider`) | 4×2, redimensionnable | 7 barres (vert dans l'objectif, corail au-delà, creux avant le début du suivi), ligne d'objectif, moyenne et nombre de jours au-dessus |
+| **+1** (`QuickAddWidgetProvider`) | 2×1 | Le compteur du jour et un bouton « +1 cigarette », sans rien d'autre |
+
+### Widget Jour
 
 | Élément | Comportement |
 |---|---|
@@ -116,8 +126,27 @@ L'APK embarque un **vrai widget Android** (`AppWidgetProvider`), pas une simple 
 | Bouton **+ Une cigarette** | Enregistre une cigarette **sans ouvrir** l'application |
 | Toucher le compteur | Ouvre l'application |
 | Minuit | Le widget repart de zéro même si l'app n'a pas été ouverte |
-| Taille | 2×2 cellules par défaut, redimensionnable (2×1 minimum) |
 | Thème | **Liquid glass** : verre teinté translucide, reflet supérieur, bouton sarcelle vitré — accordé au thème Aurora Glass de l'app |
+
+### Widget Semaine
+
+Les 7 derniers jours arrivent **déjà calculés** par l'application (`useTracker` →
+`widgetBridge.ts`), sous forme de deux chaînes CSV (`week7_counts`, `week7_tracked`). Aucun
+calcul de dates côté Java : la règle « un jour n'est suivi qu'à partir de la première saisie »
+reste définie à un seul endroit (`src/lib/domain.ts`).
+
+- Hauteur des barres : `setViewLayoutHeight` (**Android 12+ uniquement**). Avant Android 12,
+  les barres gardent une hauteur fixe ; les valeurs chiffrées au-dessus de chaque colonne
+  suffisent alors à lire la semaine.
+- Un jour non suivi affiche « — » et une barre creuse, jamais un zéro vert.
+- Toucher le widget ouvre l'application.
+
+### Widget +1
+
+Une seule action, pensée pour être posée près du pouce. Il écrit dans **la même** file
+d'attente que le widget Jour (`WidgetStorage.addPending`) et met à jour la semaine mémorisée,
+donc l'application fusionne les deux sources sans risque de doublon. Comme les autres, il
+repart de zéro à minuit même si l'application n'a pas été ouverte.
 
 ### D'où vient le compte à rebours
 
@@ -149,7 +178,7 @@ WebView (source de vérité)            Widget natif
   localStorage["smokertrack.v1"]
             │  après chaque modification
             ▼
-  WidgetBridge.sync({todayKey,count,goal,lastSmokedAt})
+  WidgetBridge.sync({todayKey,count,goal,lastSmokedAt,week7Counts,week7Tracked})
             │                        ┌──────────────────────────┐
             └──► SharedPreferences ──►  compteur, heure, décompte│
                  smokertrack_widget    │  bouton "+1"             │
@@ -162,8 +191,11 @@ WebView (source de vérité)            Widget natif
   (au démarrage et au retour au premier plan, une seule fois)
 ```
 
-- `WidgetStorage.java` : lecture/écriture des préférences partagées.
-- `SmokeWidgetProvider.java` : rendu du widget, gestion du « +1 » et du changement de jour.
+- `WidgetStorage.java` : lecture/écriture des préférences partagées (résumé du jour + semaine CSV).
+- `SmokeWidgetProvider.java` : widget Jour, gestion du « +1 » partagé et du changement de jour ;
+  `refreshAll` rafraîchit aussi les deux autres widgets.
+- `WeekWidgetProvider.java` : widget Semaine (barres des 7 jours).
+- `QuickAddWidgetProvider.java` : widget « +1 » minimal.
 - `WidgetBridgePlugin.java` : plugin Capacitor (`sync`, `consumePending`), enregistré dans
   `MainActivity`.
 - `src/lib/widgetBridge.ts` : côté web, no-op total dans un navigateur.
@@ -179,7 +211,8 @@ splash screen, aucune dépendance au navigateur.
 tout, comme vider les données du site pour la PWA → l'export JSON (manuel ou hebdomadaire)
 reste indispensable.
 
-**Différence avec la PWA** : l'APK fournit le widget natif, impossible depuis un navigateur.
+**Différence avec la PWA** : l'APK fournit trois widgets natifs, impossibles depuis un
+navigateur (la PWA se rabat sur les raccourcis d'écran d'accueil et le badge d'icône).
 La PWA conserve les raccourcis (appui long sur l'icône) et le badge comme équivalents.
 
 ## Publication sur le Play Store (optionnel)

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Widget « Semaine » : 4×2 cellules (lisible à partir de 3×2), redimensionnable.
+  Aucune alarme propre : il est rafraîchi par le widget principal (échéance du
+  compte à rebours, minuit) et par chaque synchronisation de l'application.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="250dp"
+    android:minHeight="110dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="1800000"
+    android:initialLayout="@layout/widget_week"
+    android:previewLayout="@layout/widget_week"
+    android:description="@string/widget_week_description"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen" />

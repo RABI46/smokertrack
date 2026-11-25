@@ -37,7 +37,12 @@ export default function HistoryList({
             const withinGoal = point.count <= goal;
             const untracked = !point.tracked;
             return (
-              <li className={styles.listRow} key={point.date}>
+              <li
+                className={`${styles.listRow} ${
+                  point.date === todayKey ? styles.listRowToday : ""
+                }`}
+                key={point.date}
+              >
                 <span className={styles.listDate}>
                   {formatLongDate(point.date)}
                   {point.date === todayKey ? " (aujourd'hui)" : ""}

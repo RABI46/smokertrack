@@ -27,6 +27,13 @@ final class WidgetStorage {
     private static final String KEY_STREAK = "streak_days";
     /** Vrai dès la première synchronisation depuis l'application. */
     private static final String KEY_HAS_STATS = "has_stats";
+    /**
+     * 7 derniers jours, du plus ancien au plus récent, sous deux chaînes CSV
+     * (`week7_counts` = "3,5,0,4,2,1,2", `week7_tracked` = "1,1,0,1,1,1,1").
+     * CSV plutôt que JSON : lecture triviale en Java, aucune dépendance.
+     */
+    private static final String KEY_WEEK_COUNTS = "week7_counts";
+    private static final String KEY_WEEK_TRACKED = "week7_tracked";
 
     private WidgetStorage() {
     }
@@ -71,6 +78,70 @@ final class WidgetStorage {
     /** Série de jours consécutifs dans l'objectif. */
     static int streak(Context context) {
         return prefs(context).getInt(KEY_STREAK, 0);
+    }
+
+    /** Enregistre les 7 derniers jours (CSV déjà normalisé par le WebView). */
+    static void saveWeek(Context context, String countsCsv, String trackedCsv) {
+        prefs(context)
+                .edit()
+                .putString(KEY_WEEK_COUNTS, countsCsv == null ? "" : countsCsv)
+                .putString(KEY_WEEK_TRACKED, trackedCsv == null ? "" : trackedCsv)
+                .apply();
+    }
+
+    /** 7 compteurs du plus ancien au plus récent ; tableau vide si non synchronisé. */
+    static int[] week7Counts(Context context) {
+        return parseCsv(prefs(context).getString(KEY_WEEK_COUNTS, ""));
+    }
+
+    /** 7 indicateurs « jour suivi » alignés sur `week7Counts`. */
+    static int[] week7Tracked(Context context) {
+        return parseCsv(prefs(context).getString(KEY_WEEK_TRACKED, ""));
+    }
+
+    /**
+     * Lecture défensive : une valeur corrompue (restauration partielle, mise à
+     * jour ratée) renvoie un tableau vide au lieu de faire planter le widget.
+     */
+    private static int[] parseCsv(String raw) {
+        if (raw == null || raw.trim().isEmpty()) {
+            return new int[0];
+        }
+        String[] parts = raw.split(",");
+        int[] values = new int[parts.length];
+        try {
+            for (int i = 0; i < parts.length; i++) {
+                values[i] = Integer.parseInt(parts[i].trim());
+            }
+        } catch (NumberFormatException error) {
+            return new int[0];
+        }
+        return values;
+    }
+
+    /**
+     * Le « +1 » du widget doit rester cohérent avec le widget Semaine : on
+     * incrémente aussi le dernier jour de la semaine mémorisée, sans quoi les
+     * deux widgets afficheraient des totaux différents après un ajout.
+     */
+    static void bumpTodayInWeek(Context context) {
+        int[] counts = week7Counts(context);
+        int[] tracked = week7Tracked(context);
+        if (counts.length != 7 || tracked.length != 7) {
+            return;
+        }
+        counts[6] = Math.max(0, counts[6]) + 1;
+        tracked[6] = 1;
+        saveWeek(context, joinCsv(counts), joinCsv(tracked));
+    }
+
+    private static String joinCsv(int[] values) {
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < values.length; i++) {
+            if (i > 0) builder.append(',');
+            builder.append(values[i]);
+        }
+        return builder.toString();
     }
 
     /** Vrai dès que l'application a poussé au moins un résumé complet. */

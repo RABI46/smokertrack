@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Widget « Semaine » : les 7 derniers jours en barres, avec la ligne d'objectif.
+
+  RemoteViews n'accepte que des hauteurs simples : chaque barre est un View dont
+  la hauteur est fixée à l'exécution par `setViewLayoutHeight` (API 31+). Avant
+  Android 12, les barres gardent une hauteur fixe et les valeurs chiffrées
+  au-dessus suffisent à lire la semaine.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/widget_week_title"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/widget_week_title"
+        android:textColor="#9AA8C2"
+        android:textSize="10sp"
+        android:textAllCaps="true"
+        android:letterSpacing="0.08" />
+
+    <!-- Aucune synchronisation : on l'annonce, sans afficher sept zéros. -->
+    <TextView
+        android:id="@+id/widget_week_empty"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="center"
+        android:visibility="gone"
+        android:text="@string/widget_week_empty"
+        android:textColor="#F4F6FB"
+        android:textSize="12sp" />
+
+    <!-- Les 7 colonnes : valeur, barre, initiale du jour. -->
+    <LinearLayout
+        android:id="@+id/widget_week_chart"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="6dp"
+        android:orientation="horizontal"
+        android:gravity="bottom"
+        android:baselineAligned="false">
+
+        <LinearLayout style="@style/WidgetWeekColumn">
+            <TextView android:id="@+id/widget_week_value_0" style="@style/WidgetWeekValue" />
+            <TextView android:id="@+id/widget_week_bar_0" style="@style/WidgetWeekBar" />
+            <TextView android:text="@string/widget_day_mon" style="@style/WidgetWeekDay" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/WidgetWeekColumn">
+            <TextView android:id="@+id/widget_week_value_1" style="@style/WidgetWeekValue" />
+            <TextView android:id="@+id/widget_week_bar_1" style="@style/WidgetWeekBar" />
+            <TextView android:text="@string/widget_day_tue" style="@style/WidgetWeekDay" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/WidgetWeekColumn">
+            <TextView android:id="@+id/widget_week_value_2" style="@style/WidgetWeekValue" />
+            <TextView android:id="@+id/widget_week_bar_2" style="@style/WidgetWeekBar" />
+            <TextView android:text="@string/widget_day_wed" style="@style/WidgetWeekDay" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/WidgetWeekColumn">
+            <TextView android:id="@+id/widget_week_value_3" style="@style/WidgetWeekValue" />
+            <TextView android:id="@+id/widget_week_bar_3" style="@style/WidgetWeekBar" />
+            <TextView android:text="@string/widget_day_thu" style="@style/WidgetWeekDay" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/WidgetWeekColumn">
+            <TextView android:id="@+id/widget_week_value_4" style="@style/WidgetWeekValue" />
+            <TextView android:id="@+id/widget_week_bar_4" style="@style/WidgetWeekBar" />
+            <TextView android:text="@string/widget_day_fri" style="@style/WidgetWeekDay" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/WidgetWeekColumn">
+            <TextView android:id="@+id/widget_week_value_5" style="@style/WidgetWeekValue" />
+            <TextView android:id="@+id/widget_week_bar_5" style="@style/WidgetWeekBar" />
+            <TextView android:text="@string/widget_day_sat" style="@style/WidgetWeekDay" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/WidgetWeekColumn">
+            <TextView android:id="@+id/widget_week_value_6" style="@style/WidgetWeekValue" />
+            <TextView android:id="@+id/widget_week_bar_6" style="@style/WidgetWeekBar" />
+            <TextView android:text="@string/widget_day_sun" style="@style/WidgetWeekDay" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/widget_week_footer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:singleLine="true"
+        android:ellipsize="end"
+        android:textColor="#9AA8C2"
+        android:textSize="10sp" />
+</LinearLayout>

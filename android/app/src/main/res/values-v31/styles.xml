@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Correctifs réservés à Android 12+ (API 31).
+
+  Depuis Android 12, le lanceur applique ses propres coins arrondis et une
+  teinte système aux widgets : `system_app_widget_background_radius` permet à
+  nos propres rayons (24 dp) de suivre le rayon du lanceur au lieu de le
+  contredire. Seul un fichier `values-v31` peut définir cette dimension.
+-->
+<resources>
+    <dimen name="system_app_widget_background_radius">24dp</dimen>
+    <dimen name="system_app_widget_inner_radius">16dp</dimen>
+</resources>

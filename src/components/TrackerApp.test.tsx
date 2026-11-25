@@ -38,6 +38,15 @@ describe("TrackerApp", () => {
     expect(screen.getByText("objectif 10")).toBeTruthy();
   });
 
+  it("propose un don libre via Ko-fi", async () => {
+    render(<TrackerApp />);
+
+    const link = await screen.findByRole("link", { name: "Faire un don libre sur Ko-fi" });
+    expect(link.getAttribute("href")).toBe("https://ko-fi.com/rabi46");
+    expect(link.getAttribute("target")).toBe("_blank");
+    expect(link.getAttribute("rel")).toBe("noopener noreferrer");
+  });
+
   it("incrémente le compteur à chaque clic", async () => {
     render(<TrackerApp />);
 
